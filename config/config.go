@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	RepoPath string `json:"repo_path"`
+	Editor string `json:"editor"`
 }
 
 const (
@@ -36,7 +36,7 @@ func GetConfig() (Config, error) {
 
 		//writing default config to file
 		defaultConfig := Config {
-			RepoPath: "github.com/hurtki/test",
+			Editor: "vim",
 		}
 		encoder := json.NewEncoder(file)
 		encoder.SetIndent("", "  ")

@@ -7,7 +7,7 @@ import (
 // GetPathConfigPath realizes getting config path from configs list 
 // returns error if not found 
 func GetPathConfigPath(key string) (string, error) {
-	configsList, err := u.GetConfigListFile()
+	configsList, err := u.GetConfigsListFile()
 	if err != nil {
 		return "", err
 	}

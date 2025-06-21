@@ -9,7 +9,12 @@ import (
 
 const (
 	ConfigListRelPath = "/.config/configs_list.json"
+	CMConfigRelPath = "/.config/configManager.json"
 )
+
+var DefaultConfigsListMap = map[string]string{
+	"cm_config": GetAbsoluteCMConfigPath(),
+}
 
 // GetAbsoluteConfigsListPath returns absolute path to configs list 
 // panics if cannot found home dir using os.UserHomeDir()
@@ -21,9 +26,20 @@ func GetAbsoluteConfigsListPath() string {
 	return filepath.Join(home, ConfigListRelPath)
 }
 
+// GetAbsoluteCMConfigPath returns absolute path to CM config 
+// panics if cannot found home dir using os.UserHomeDir()
+func GetAbsoluteCMConfigPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	return filepath.Join(home, CMConfigRelPath)
+}
+
+
 // GetConfig loads file with configs list
 // If the file does not exist, it is created blank 
-func GetConfigListFile() (map[string]string, error) {
+func GetConfigsListFile() (map[string]string, error) {
 	configPath := GetAbsoluteConfigsListPath()
 
 	// trying to open config
@@ -35,10 +51,7 @@ func GetConfigListFile() (map[string]string, error) {
 			return make(map[string]string), err
 		}
 
-		//writing default config to file
-		defaultConfig := make(map[string]string)
-
-		jsonData, err := json.MarshalIndent(defaultConfig, "", "  ") 
+		jsonData, err := json.MarshalIndent(DefaultConfigsListMap, "", "  ") 
 		if err != nil {
 			return make(map[string]string), err
 		}

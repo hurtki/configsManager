@@ -10,7 +10,7 @@ import (
 
 // addConfigPath creates a value for key in configs list
 func AddConfigPath(key string, value string) error {
-	data, err := u.GetConfigListFile()
+	data, err := u.GetConfigsListFile()
 	if err != nil {
 		return err
 	}
