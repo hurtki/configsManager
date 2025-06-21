@@ -9,7 +9,7 @@ import (
 func GetPathConfigPath(key string) (string, error) {
 	configsList, err := u.GetConfigListFile()
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	val, ok := configsList[key]
 	if ok {

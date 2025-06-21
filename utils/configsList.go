@@ -8,18 +8,23 @@ import (
 
 
 const (
-	configListRelPath = "/.config/configs_list.json"
+	ConfigListRelPath = "/.config/configs_list.json"
 )
+
+// GetAbsoluteConfigsListPath returns absolute path to configs list 
+// panics if cannot found home dir using os.UserHomeDir()
+func GetAbsoluteConfigsListPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+	return filepath.Join(home, ConfigListRelPath)
+}
 
 // GetConfig loads file with configs list
 // If the file does not exist, it is created blank 
 func GetConfigListFile() (map[string]string, error) {
-	// getting absolute path to config
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return make(map[string]string), err
-	}
-	configPath := filepath.Join(home, configListRelPath)
+	configPath := GetAbsoluteConfigsListPath()
 
 	// trying to open config
 	// if no file creating it

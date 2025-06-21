@@ -6,7 +6,6 @@ import (
 
 	c "github.com/hurtki/configManager/config"
 	"github.com/hurtki/configManager/commands"
-	"github.com/hurtki/configManager/utils"
 )
 
 func main() {
@@ -33,7 +32,7 @@ func main() {
 
 		value, err := commands.GetPathConfigPath(key)
 		if err != nil {
-			fmt.Println("config was not found")
+			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 		fmt.Println(value)
@@ -46,25 +45,25 @@ func main() {
 		}
 		key := args[2]
 
-		value, err := commands.GetPathConfigPath(key)
+		data, err := commands.GetFileDataByConfigKey(key)
 		if err != nil {
-			fmt.Println("config was not found")
-			os.Exit(1)
-		}
-	
-		data, err := utils.GetFileText(value)
-		if err != nil {
-			fmt.Println("file from config list not found")
-			os.Exit(1)
+			fmt.Println(err.Error())
 		}
 		fmt.Println(data)
 	
 	
+	case "--add", "-a":
+		if argsLen < 4 {
+			fmt.Println("not enough args")
+			os.Exit(1)
+		}
+		key := args[2]
+		value := args[3]
 
-
-
-
-
-	
+		err := commands.AddConfigPath(key, value)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
 	}
 }
