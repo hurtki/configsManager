@@ -1,8 +1,7 @@
-// Entry point of the configManager CLI.
-// All command-line logic is handled in the `cmd` package.
-//
-// Author: hurtki
-// https://github.com/hurtki/configManager
+/*
+Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+
+*/
 package main
 
 import "github.com/hurtki/configManager/cmd"
