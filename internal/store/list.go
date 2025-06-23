@@ -1,10 +1,12 @@
-package utils
+package store
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 )
+
 
 
 const (
@@ -39,7 +41,7 @@ func GetAbsoluteCMConfigPath() string {
 
 // GetConfig loads file with configs list
 // If the file does not exist, it is created blank 
-func GetConfigsListFile() (map[string]string, error) {
+func LoadUserConfigs() (map[string]string, error) {
 	configPath := GetAbsoluteConfigsListPath()
 
 	// trying to open config
@@ -78,3 +80,20 @@ func GetConfigsListFile() (map[string]string, error) {
 	return result, nil
 }
 
+// WriteConfigsList writes data to configs list
+// returns error if unable to write
+func WriteConfigsList(data map[string]string) error {
+	configPath := GetAbsoluteConfigsListPath()
+
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return errors.New("unable to encode map to json")
+	}
+	err = os.WriteFile(configPath, jsonData, 0644)
+
+	if err != nil {
+		return errors.New("unable to write json to file")
+	}
+	return err
+	
+}

@@ -1,11 +1,9 @@
-package utils
+package store
 
 import (
 	"errors"
 	"os"
 )
-
-
 
 func GetFileText(filepath string) (string, error) {
 	text, err := os.ReadFile(filepath)

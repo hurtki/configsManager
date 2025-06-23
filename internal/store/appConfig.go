@@ -1,4 +1,4 @@
-package config
+package store
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-type Config struct {
+type AppConfig struct {
 	Editor string `json:"editor"`
 }
 
@@ -16,12 +16,11 @@ const (
 
 // GetConfig loads the configuration from config_path.
 // If the file does not exist, it is created with default settings.
-
-func GetConfig() (Config, error) {
+func GetConfig() (AppConfig, error) {
 	// получаем путь к конфигу
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return Config{}, err
+		return AppConfig{}, err
 	}
 	configPath := filepath.Join(home, configRelPath)
 
@@ -31,11 +30,11 @@ func GetConfig() (Config, error) {
 	if err != nil {
 		file, err = os.Create(configPath)
 		if err != nil {
-			return Config{}, err
+			return AppConfig{}, err
 		}
 
 		//writing default config to file
-		defaultConfig := Config {
+		defaultConfig := AppConfig {
 			Editor: "vim",
 		}
 		encoder := json.NewEncoder(file)
@@ -52,14 +51,17 @@ func GetConfig() (Config, error) {
 	// defering file to close
 	defer file.Close()
 
-	var config Config
+	var config AppConfig
 	// decoding of config file
 	err = json.NewDecoder(file).Decode(&config)
 	
 	if err != nil {
-		return Config{}, err
+		return AppConfig{}, err
 	}
 
 	return config, nil
 }
+
+
+
 
