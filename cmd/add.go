@@ -25,7 +25,7 @@ This command is useful to register new configuration files with a key,
 so you can easily reference and manage them later using other commands
 like 'path' or 'cat'.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) < 4 {
+		if len(args) < 2 {
 			fmt.Println("not enough args")
 			os.Exit(1)
 		}
