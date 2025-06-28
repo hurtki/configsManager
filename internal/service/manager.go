@@ -77,7 +77,7 @@ func OpenByKey(key string) error {
 	if err != nil {
 		return  err
 	}
-	return editor.OpenInEditor(cfg.Editor, path)
+	return editor.OpenInEditor(*cfg.Editor, path)
 }
 
 // LoadAppConfig loads app config from storage
