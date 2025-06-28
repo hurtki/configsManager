@@ -1,10 +1,10 @@
-# ConfigManager
-ConfigManager is a simple and efficient CLI application that helps you 
+# ConfigsManager
+ConfigsManager is a simple and efficient CLI application that helps you 
 manage your configuration files by associating keys with file paths.
 
 Built with [Cobra CLI](https://github.com/spf13/cobra) library to provide a powerful and user-friendly command line interface.
 
-### With configManager, you can:
+### With configsManager, you can:
 - Add new config entries with keys and paths
 - Retrieve config paths by keys
 - View content of config files
@@ -48,7 +48,7 @@ Place it in a folder that is in the PATH environment variable, for example:
 `C:\Users\YourUser\AppData\Local\Microsoft\WindowsApp`
 
 # Usage
-`configManager [command]`
+`cm [command]`
 
 ### Available Commands:
   Add a new configuration key with its associated file path
