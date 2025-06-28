@@ -25,14 +25,38 @@ This command is useful to register new configuration files with a key,
 so you can easily reference and manage them later using other commands
 like 'path' or 'cat'.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) < 2 {
-			fmt.Println("not enough args")
-			os.Exit(1)
+		if len(args) < 1 {
+			data, ok := service.GetSTDIn()
+			if ok {
+				args = append(args, data)
+			} else {
+				fmt.Println("not enough args")
+				os.Exit(1)
+			}
 		}
-		key := args[0]
-		value := args[1]
+		var key string
+		var value string
+		var err error
 
-		err := service.AddConfig(key, value)
+		if len(args) < 2 {
+			data, ok := service.GetSTDIn()
+			if ok {
+				value = data
+				key = args[0]
+			} else {
+				value = args[0]
+				key, err = service.GenerateUniqueKeyForPath(value)
+				if err != nil {
+					fmt.Println(err.Error())
+					os.Exit(1)
+				}
+				fmt.Println("key assighned to your path:", key)
+			}
+		} else {
+			key = args[0]
+			value = args[1]
+		}
+		err = service.AddConfig(key, value)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)

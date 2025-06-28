@@ -2,6 +2,11 @@ package service
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	"os"
+	"strings"
+
 	editor "github.com/hurtki/configManager/internal/editor"
 	store "github.com/hurtki/configManager/internal/store"
 )
@@ -83,4 +88,55 @@ func OpenByKey(key string) error {
 // LoadAppConfig loads app config from storage
 func LoadAppConfig() (store.AppConfig, error) {
 	return store.GetConfig()
+}
+
+// Generates unique key for filepath
+// the key won't maths any existing keys in configs list
+func GenerateUniqueKeyForPath(path string) (string, error) {
+	existingKeys, err := GetAllKeys()
+	if err != nil {
+		return "", err
+	}
+	fileName := strings.Split(path, "/")[len(strings.Split(path, "/"))-1]
+	fileName = strings.Split(fileName, ".")[0]
+	tempFileName := fileName
+
+
+	for i := 1;i<1000;i++ {
+		if !contains(existingKeys, tempFileName) {
+			return tempFileName, nil
+		}
+		tempFileName = fmt.Sprintf("%s%d", fileName, i)
+	} 
+	return "", errors.New("could not found a unique key for the path")
+}
+
+// contains() checks slice for containing an object
+func contains(slice []string, item string) bool {
+	for _, v := range slice {
+		if v == item {
+			return true
+		}
+	}
+	return false
+}
+
+// GetSTDIn returns stdin from pipe input if it exists; otherwise returns false
+func GetSTDIn() (string, bool) {
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		return "", false
+	}
+	if (stat.Mode() & os.ModeCharDevice) != 0 {
+		return "", false
+	}
+	data, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return "", false
+	}
+	clean := strings.TrimSpace(string(data))
+	if clean == "" {
+		return "", false
+	}
+	return clean, true
 }
