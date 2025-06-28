@@ -1,4 +1,4 @@
-module github.com/hurtki/configManager
+module github.com/hurtki/configsManager
 
 go 1.24.2
 
