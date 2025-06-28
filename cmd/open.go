@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/hurtki/configManager/internal/service"
+	"github.com/hurtki/configsManager/internal/service"
 	"github.com/spf13/cobra"
 )
 

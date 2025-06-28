@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	editor "github.com/hurtki/configManager/internal/editor"
-	store "github.com/hurtki/configManager/internal/store"
+	editor "github.com/hurtki/configsManager/internal/editor"
+	store "github.com/hurtki/configsManager/internal/store"
 )
 
 // GetConfigKeys returns all keys in configs list file

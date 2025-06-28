@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	service "github.com/hurtki/configManager/internal/service"
+	service "github.com/hurtki/configsManager/internal/service"
 	"github.com/spf13/cobra"
 )
 
