@@ -12,3 +12,8 @@ func GetFileText(filepath string) (string, error) {
 	}
 	return string(text), nil
 }
+
+func FileExists(path string) bool {
+    info, err := os.Stat(path)
+    return err == nil && !info.IsDir()
+}

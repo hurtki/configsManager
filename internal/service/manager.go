@@ -62,7 +62,7 @@ func GetFileDataByConfigKey(key string) (string, error) {
 
 	data, err := store.GetFileText(value)
 	if err != nil {
-		return "", errors.New("file from config list not found")
+		return "", errors.New("file from config list was not found")
 	}
 	return data, nil
 }
