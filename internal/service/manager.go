@@ -96,6 +96,12 @@ func AddConfig(key string, value string) error {
 	if err != nil {
 		return err
 	}
+	// if file exists we need to get absolute path 
+	path, ok := store.FileExists(value)
+	if ok {
+		value = path
+	}
+
 	data[key] = value
 
 	err = store.WriteConfigsList(data)
@@ -198,8 +204,8 @@ func ShouldConfirmInvalidPath(path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
-	if !*config.ForceAddPath && !store.FileExists(path) {
+	_, fileExists := store.FileExists(path)
+	if !*config.ForceAddPath && !fileExists {
 		return true, nil
 	}
 	return false, nil
