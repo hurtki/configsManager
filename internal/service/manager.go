@@ -204,3 +204,16 @@ func ShouldConfirmInvalidPath(path string) (bool, error) {
 	}
 	return false, nil
 }
+
+// RemoveConfig() removes config from configs list
+func RemoveConfig(key string) error {
+	data, err := store.LoadUserConfigs()
+	if err != nil {
+		return err
+	}
+	delete(data, key)
+
+	err = store.WriteConfigsList(data)
+
+	return err
+}

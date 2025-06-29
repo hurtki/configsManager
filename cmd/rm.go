@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/hurtki/configsManager/internal/service"
 	"github.com/spf13/cobra"
 )
 
@@ -20,21 +21,15 @@ var rmCmd = &cobra.Command{
 			fmt.Println("not enough args")
 			os.Exit(1)
 		}
-		// key := args[0]
-		
+		key := args[0]
+		err := service.RemoveConfig(key)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(rmCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// rmCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// rmCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

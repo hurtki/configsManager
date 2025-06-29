@@ -106,7 +106,6 @@ like 'path' or 'cat'.`,
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
-		fmt.Println("successfully added new config")
 	},
 }
 
