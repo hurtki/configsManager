@@ -25,6 +25,15 @@ This command is useful to register new configuration files with a key,
 so you can easily reference and manage them later using other commands
 like 'path' or 'cat'.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// ========================
+		// args parsing
+
+		// variants:
+		// 1. no args + stdIN => args[0]=stdIN => 
+		// 2. one argument + stdIN => key=argument ; value=stdIN
+		// 3. one argument(should be a path) + NO stdIN => key=unique key from argument ; value=argument
+		// 4. two arguments => key=first argument ; value=second argument
+
 		if len(args) < 1 {
 			data, ok := service.GetSTDIn()
 			if ok {
@@ -56,15 +65,17 @@ like 'path' or 'cat'.`,
 			key = args[0]
 			value = args[1]
 		}
+		
+		// ========================
+		// key and value validating 
 
-
-		needForCheck, err := service.NeedForAskForKeyOverwrting(key)
+		shouldAskOverwrite, err := service.ShouldConfirmOverwrite(key)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 
-		if needForCheck {
+		if shouldAskOverwrite {
 			fmt.Println("The key you want to assign already exist, want to overwrite? y/n")
 			accept := service.AskUserYN()
 			if !accept {
@@ -72,13 +83,13 @@ like 'path' or 'cat'.`,
 			}
 		}
 
-		needForCheck2, err := service.NeedForAskForNotExistingPathSaving(value)
+		shouldAskPathConfirmation, err := service.ShouldConfirmInvalidPath(value)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 		
-		if needForCheck2 {
+		if shouldAskPathConfirmation {
 			fmt.Println("The path you want to assign is not real, want to continue? y/n")
 			accept := service.AskUserYN()
 			if !accept {
@@ -86,9 +97,11 @@ like 'path' or 'cat'.`,
 			}
 		}
 		
+		// ========================
+		// config adding
+		
 		err = service.AddConfig(key, value)
 		
-
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
