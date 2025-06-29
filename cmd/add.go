@@ -56,7 +56,39 @@ like 'path' or 'cat'.`,
 			key = args[0]
 			value = args[1]
 		}
+
+
+		needForCheck, err := service.NeedForAskForKeyOverwrting(key)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+
+		if needForCheck {
+			fmt.Println("The key you want to assign already exist, want to overwrite? y/n")
+			accept := service.AskUserYN()
+			if !accept {
+				os.Exit(1)
+			}
+		}
+
+		needForCheck2, err := service.NeedForAskForNotExistingPathSaving(value)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		
+		if needForCheck2 {
+			fmt.Println("The path you want to assign is not real, want to continue? y/n")
+			accept := service.AskUserYN()
+			if !accept {
+				os.Exit(1)
+			}
+		}
+		
 		err = service.AddConfig(key, value)
+		
+
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)

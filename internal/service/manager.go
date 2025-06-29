@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -139,4 +140,54 @@ func GetSTDIn() (string, bool) {
 		return "", false
 	}
 	return clean, true
+}
+
+func NeedForAskForKeyOverwrting(key string) (bool, error) {
+	keysList, err := GetAllKeys()
+	if err != nil {
+		return false, err
+	}
+	config, err := store.GetConfig()
+	if err != nil {
+		return false, err
+	}
+	
+	if contains(keysList, key) && !*config.ForceOverwrite {
+		return true, nil
+	}
+	return false, nil
+}
+
+func AskUserYN() bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			panic(err)
+		}
+
+		input = strings.TrimSpace(strings.ToLower(input))
+
+		switch input {
+		case "y":
+			return true
+		case "n":
+			return false
+		default:
+			fmt.Println("Only y/n:")
+		}
+	}
+}
+
+func NeedForAskForNotExistingPathSaving(path string) (bool, error) {
+	config, err := store.GetConfig()
+	if err != nil {
+		return false, err
+	}
+
+	if !*config.ForceAddPath && !store.FileExists(path) {
+		return true, nil
+	}
+	return false, nil
 }
