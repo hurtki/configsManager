@@ -14,7 +14,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "configManager",
+	Use:   "cm",
 	Short: "A CLI tool to manage configuration file paths by keys",
 	Long: `ConfigManager is a simple and efficient CLI application that helps you 
 manage your configuration files by associating keys with file paths.
@@ -27,9 +27,9 @@ With configManager, you can:
 - Open config files in your preferred editor
 
 Example usage:
-  configManager add myconfig /path/to/config
-  configManager path myconfig
-  configManager cat myconfig
+  cm add myconfig /path/to/config
+  cm path myconfig
+  cm cat myconfig
 
 Built with Cobra CLI library to provide a powerful and user-friendly command line interface.`,
 	// Uncomment the following line if your bare application
