@@ -5,7 +5,7 @@ manage your configuration files by associating keys with file paths.
 Built with [Cobra CLI](https://github.com/spf13/cobra) library to provide a powerful and user-friendly command line interface.
 
 ### With configsManager, you can:
-- Add new config entries with keys and paths
+- Manage configs 
 - Retrieve config paths by keys
 - View content of config files
 - List all stored config keys
@@ -51,46 +51,111 @@ Place it in a folder that is in the PATH environment variable, for example:
 `cm [command]`
 
 ### Available Commands:
+  ### add
   Add a new configuration key with its associated file path
   ```
-  cm add [config name] [config path]
-  ```  
+  cm add [config name] [config absolute/realive path]
+  ```
+  Auto creating a name for config
+  ```
+  cm add [config absolute/realive path]
+  ```
+  Add a new config using stdIN
+  ```
+  realpath [path] | cm add [config name]/or nothing if you want to auto create a name for config
+  ```
+  ---
+  ### rm
+  Remove a config from list by key
+  ```
+  cm rm [config key]
+  ```
+  ---
+  ### cat
   Print the content of the config file for a given key
   ```
   cm cat [config name]
-  ```  
+  ```
+  ---
+  ### keys
   List all configuration keys
   ```
   cm keys
-  ```  
+  ```
+  --- 
+  ### open
   Open a config in editor
   ```
   cm open [config name]
   ```
+  --- 
+  ### path
   Retrieve the file path associated with a configuration key
   ```
   cm path  [config name]
   ```
+  --- 
+  ### help
   Help about any command
   ```
   cm help
   ```
-# Application config 
-Yeah we have a config, you need to specify here your editor
-You can open it with
-```
+
+## 🔧 Application Config
+
+Yes, this tool uses a config file!  
+You can open it anytime with:
+
+```bash
 cm open cm_config
-```
-It creates automatically, with this structure in `user/.config/configManager.json`:
-```
+````
+
+The config is automatically created at:
+`~/.config/configManager.json`
+
+Example structure:
+
+```json
 {
-  "editor": "vim"
+  "editor": "vim",
+  "overwrite_if_exists": false,
+  "force_add_path": false
 }
 ```
-Default editor "vim"
-It's just a command that runs before the config path 
-```
+
+---
+
+### 🖊️ `editor`
+
+**Default:** `"vim"`
+This is the command used to open your configuration files.
+
+Example:
+
+```bash
 [your_editor_command] /path/to/your/config.cfg
 ```
+
+---
+
+### ⚠️ `overwrite_if_exists`
+
+**Default:** `false`
+
+* If `false`, the tool will ask you to confirm before overwriting an existing key.
+* If `true`, it will overwrite existing keys without asking.
+
+---
+
+### 🛡️ `force_add_path`
+
+**Default:** `false`
+
+* If `false`, the tool will ask for confirmation before adding a path that doesn't exist.
+* If `true`, it will add such paths without any confirmation.
+
+---
+
+
 
 
