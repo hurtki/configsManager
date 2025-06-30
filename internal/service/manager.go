@@ -50,8 +50,8 @@ func GetSTDIn() (string, bool) {
 	return clean, true
 }
 
-func AskUserYN() bool {
-	reader := bufio.NewReader(os.Stdin)
+func AskUserYN(r io.Reader) bool {
+	reader := bufio.NewReader(r)
 
 	for {
 		input, err := reader.ReadString('\n')

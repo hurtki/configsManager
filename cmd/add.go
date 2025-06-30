@@ -77,7 +77,7 @@ like 'path' or 'cat'.`,
 
 		if shouldAskOverwrite {
 			fmt.Println("The key you want to assign already exist, want to overwrite? y/n")
-			accept := service.AskUserYN()
+			accept := service.AskUserYN(os.Stdin)
 			if !accept {
 				os.Exit(1)
 			}
@@ -91,7 +91,7 @@ like 'path' or 'cat'.`,
 		
 		if shouldAskPathConfirmation {
 			fmt.Println("The path you want to assign is not real, want to continue? y/n")
-			accept := service.AskUserYN()
+			accept := service.AskUserYN(os.Stdin)
 			if !accept {
 				os.Exit(1)
 			}
