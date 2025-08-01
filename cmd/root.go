@@ -1,16 +1,12 @@
 /*
 Copyright © 2025 Alexey asboba2101@gmail.com >
-
 */
 package cmd
 
 import (
-	"os"
-
+	"github.com/hurtki/configsManager/internal/service"
 	"github.com/spf13/cobra"
 )
-
-
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -37,15 +33,6 @@ Built with Cobra CLI library to provide a powerful and user-friendly command lin
 	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
-}
-
 func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -59,3 +46,12 @@ func init() {
 }
 
 
+func NewRootCmd(AppConfig *service.AppConfig) *cobra.Command {
+	// creating commands with dependencies 
+	addCmd := NewAddCmd(AppConfig)
+
+
+	// adding them to root command
+	rootCmd.AddCommand(addCmd.Command)
+	return rootCmd
+}

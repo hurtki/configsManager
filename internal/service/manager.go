@@ -223,3 +223,8 @@ func RemoveConfig(key string) error {
 
 	return err
 }
+
+
+type AppConfig struct {
+	
+}
