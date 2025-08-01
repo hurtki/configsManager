@@ -7,18 +7,16 @@ import (
 	"path/filepath"
 )
 
-
-
 const (
 	ConfigListRelPath = "/.config/configs_list.json"
-	CMConfigRelPath = "/.config/configManager.json"
+	CMConfigRelPath   = "/.config/configManager.json"
 )
 
 var DefaultConfigsListMap = map[string]string{
 	"cm_config": GetAbsoluteCMConfigPath(),
 }
 
-// GetAbsoluteConfigsListPath returns absolute path to configs list 
+// GetAbsoluteConfigsListPath returns absolute path to configs list
 // panics if cannot found home dir using os.UserHomeDir()
 func GetAbsoluteConfigsListPath() string {
 	home, err := os.UserHomeDir()
@@ -28,7 +26,7 @@ func GetAbsoluteConfigsListPath() string {
 	return filepath.Join(home, ConfigListRelPath)
 }
 
-// GetAbsoluteCMConfigPath returns absolute path to CM config 
+// GetAbsoluteCMConfigPath returns absolute path to CM config
 // panics if cannot found home dir using os.UserHomeDir()
 func GetAbsoluteCMConfigPath() string {
 	home, err := os.UserHomeDir()
@@ -38,9 +36,8 @@ func GetAbsoluteCMConfigPath() string {
 	return filepath.Join(home, CMConfigRelPath)
 }
 
-
 // GetConfig loads file with configs list
-// If the file does not exist, it is created blank 
+// If the file does not exist, it is created blank
 func LoadUserConfigs() (map[string]string, error) {
 	configPath := GetAbsoluteConfigsListPath()
 
@@ -53,20 +50,20 @@ func LoadUserConfigs() (map[string]string, error) {
 			return make(map[string]string), err
 		}
 
-		jsonData, err := json.MarshalIndent(DefaultConfigsListMap, "", "  ") 
+		jsonData, err := json.MarshalIndent(DefaultConfigsListMap, "", "  ")
 		if err != nil {
 			return make(map[string]string), err
 		}
 		err = os.WriteFile(configPath, jsonData, 0644)
-		
-		// to the start of the file 
+
+		// to the start of the file
 		file.Seek(0, 0)
 
 		if err != nil {
 			panic(err)
 		}
 	}
-	
+
 	// defering file to close
 	defer file.Close()
 
@@ -95,5 +92,5 @@ func WriteConfigsList(data map[string]string) error {
 		return errors.New("unable to write json to file")
 	}
 	return err
-	
+
 }

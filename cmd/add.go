@@ -9,22 +9,19 @@ import (
 
 	service "github.com/hurtki/configsManager/internal/service"
 	"github.com/spf13/cobra"
-	
 )
 
 type AddCmd struct {
-	Command *cobra.Command
+	Command   *cobra.Command
 	AppConfig *service.AppConfig
 }
-
-
 
 func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 	// ========================
 	// args parsing
 
 	// variants:
-	// 1. no args + stdIN => args[0]=stdIN => 
+	// 1. no args + stdIN => args[0]=stdIN =>
 	// 2. one argument + stdIN => key=argument ; value=stdIN
 	// 3. one argument(should be a path) + NO stdIN => key=unique key from argument ; value=argument
 	// 4. two arguments => key=first argument ; value=second argument
@@ -58,9 +55,9 @@ func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 		key = args[0]
 		value = args[1]
 	}
-	
+
 	// ========================
-	// key and value validating 
+	// key and value validating
 
 	shouldAskOverwrite, err := service.ShouldConfirmOverwrite(key)
 	if err != nil {
@@ -79,7 +76,7 @@ func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if shouldAskPathConfirmation {
 		fmt.Println("The path you want to assign is not real, want to continue? y/n")
 		accept := service.AskUserYN(os.Stdin)
@@ -87,24 +84,23 @@ func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("operation cancelled by user")
 		}
 	}
-	
+
 	// ========================
 	// config adding
-	
+
 	err = service.AddConfig(key, value)
-	
+
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-
 func NewAddCmd(AppConfig *service.AppConfig) *AddCmd {
-	addCmd := AddCmd {
+	addCmd := AddCmd{
 		AppConfig: AppConfig,
 	}
-	
+
 	cmd := &cobra.Command{
 		Use:   "add [key] [path]",
 		Short: "Add a new configuration key with its associated file path",
@@ -119,7 +115,7 @@ func NewAddCmd(AppConfig *service.AppConfig) *AddCmd {
 	like 'path' or 'cat'.`,
 		RunE: addCmd.run,
 	}
-	
+
 	addCmd.Command = cmd
 
 	return &addCmd

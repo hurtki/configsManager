@@ -81,14 +81,12 @@ func GetAllKeys() ([]string, error) {
 	if err != nil {
 		return make([]string, 0), err
 	}
-	keys := make([]string, 0, len(configs)) 
+	keys := make([]string, 0, len(configs))
 	for k := range configs {
-    	keys = append(keys, k)
+		keys = append(keys, k)
 	}
 	return keys, nil
 }
-
-
 
 // addConfigPath creates a value for key in configs list
 func AddConfig(key string, value string) error {
@@ -96,7 +94,7 @@ func AddConfig(key string, value string) error {
 	if err != nil {
 		return err
 	}
-	// if file exists we need to get absolute path 
+	// if file exists we need to get absolute path
 	path, ok := store.FileExists(value)
 	if ok {
 		value = path
@@ -109,9 +107,8 @@ func AddConfig(key string, value string) error {
 	return err
 }
 
-
-// GetPathConfigPath realizes getting config path from configs list 
-// returns error if not found 
+// GetPathConfigPath realizes getting config path from configs list
+// returns error if not found
 func GetPathByKey(key string) (string, error) {
 	configsList, err := store.LoadUserConfigs()
 	if err != nil {
@@ -122,9 +119,8 @@ func GetPathByKey(key string) (string, error) {
 		return val, nil
 	} else {
 		return "", errors.New("the config key not found in configs list")
-	}	
+	}
 }
-
 
 // GetFileDataByConfigKey finding config in configs list and returns file data from its path
 // returns error if file or config wasn't found
@@ -142,7 +138,7 @@ func GetFileDataByConfigKey(key string) (string, error) {
 	return data, nil
 }
 
-// OpenByKey opens config file by key 
+// OpenByKey opens config file by key
 func OpenByKey(key string) error {
 	path, err := GetPathByKey(key)
 	if err != nil {
@@ -150,12 +146,10 @@ func OpenByKey(key string) error {
 	}
 	cfg, err := store.GetConfig()
 	if err != nil {
-		return  err
+		return err
 	}
 	return editor.OpenInEditor(*cfg.Editor, path)
 }
-
-
 
 // Generates unique key for filepath
 // the key won't match any existing keys in configs list
@@ -168,19 +162,16 @@ func GenerateUniqueKeyForPath(path string) (string, error) {
 	fileName = strings.Split(fileName, ".")[0]
 	tempFileName := fileName
 
-
-	for i := 1;i<1000;i++ {
+	for i := 1; i < 1000; i++ {
 		if !contains(existingKeys, tempFileName) {
 			return tempFileName, nil
 		}
 		tempFileName = fmt.Sprintf("%s%d", fileName, i)
-	} 
+	}
 	return "", errors.New("could not found a unique key for the path")
 }
 
-
-
-// ShouldConfirmOverwrite() checks if it is necessary to ask user for overwrite confirmation 
+// ShouldConfirmOverwrite() checks if it is necessary to ask user for overwrite confirmation
 func ShouldConfirmOverwrite(key string) (bool, error) {
 	keysList, err := GetAllKeys()
 	if err != nil {
@@ -190,15 +181,14 @@ func ShouldConfirmOverwrite(key string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+
 	if contains(keysList, key) && !*config.ForceOverwrite {
 		return true, nil
 	}
 	return false, nil
 }
 
-
-// ShouldConfirmInvalidPath() checks if it is necessary to ask user for invaid path confirmation 
+// ShouldConfirmInvalidPath() checks if it is necessary to ask user for invaid path confirmation
 func ShouldConfirmInvalidPath(path string) (bool, error) {
 	config, err := store.GetConfig()
 	if err != nil {
@@ -224,10 +214,8 @@ func RemoveConfig(key string) error {
 	return err
 }
 
-
 type AppConfig interface {
 }
 
 type OsAppConfig struct {
-	
 }

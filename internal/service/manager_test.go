@@ -7,11 +7,11 @@ import (
 )
 
 func TestAskUserYN(t *testing.T) {
-	input := []struct{
-		name string
-		input string
+	input := []struct {
+		name      string
+		input     string
 		excpected bool
-	} {
+	}{
 		{name: "yes lower", input: "y\n", excpected: true},
 		{name: "yes upper", input: "Y\n", excpected: true},
 		{name: "no lower", input: "n\n", excpected: false},

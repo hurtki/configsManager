@@ -1,15 +1,15 @@
 package editor
 
 import (
+	"errors"
 	"os"
 	"os/exec"
-	"errors"
 )
 
-// OpenInEditor opens file in editor 
+// OpenInEditor opens file in editor
 func OpenInEditor(editor_cmd, filename string) error {
 	cmd := exec.Command(editor_cmd, filename)
-	
+
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

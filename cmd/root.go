@@ -45,9 +45,8 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-
 func NewRootCmd(AppConfig service.AppConfig) *cobra.Command {
-	// creating commands with dependencies 
+	// creating commands with dependencies
 	addCmd := NewAddCmd(&AppConfig)
 	catCmd := NewCatCmd(&AppConfig)
 	keysCmd := NewKeysCmd(&AppConfig)
@@ -55,7 +54,6 @@ func NewRootCmd(AppConfig service.AppConfig) *cobra.Command {
 	pathCmd := NewPathCmd(&AppConfig)
 	rmCmd := NewRmCmd(&AppConfig)
 
-	
 	// adding commands to root command
 	rootCmd.AddCommand(addCmd.Command)
 	rootCmd.AddCommand(catCmd.Command)
@@ -63,6 +61,6 @@ func NewRootCmd(AppConfig service.AppConfig) *cobra.Command {
 	rootCmd.AddCommand(openCmd.Command)
 	rootCmd.AddCommand(pathCmd.Command)
 	rootCmd.AddCommand(rmCmd.Command)
-	
+
 	return rootCmd
 }

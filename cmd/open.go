@@ -9,7 +9,7 @@ import (
 )
 
 type OpenCmd struct {
-	Command *cobra.Command
+	Command   *cobra.Command
 	AppConfig *service.AppConfig
 }
 
@@ -21,12 +21,11 @@ func (k *OpenCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-
 func NewOpenCmd(AppConfig *service.AppConfig) OpenCmd {
 	openCmd := OpenCmd{
 		AppConfig: AppConfig,
 	}
-	
+
 	cmd := &cobra.Command{
 		Use:   "open [filename]",
 		Short: "Opens a config by name",
@@ -43,6 +42,6 @@ func NewOpenCmd(AppConfig *service.AppConfig) OpenCmd {
 		RunE: openCmd.run,
 	}
 	openCmd.Command = cmd
-	
-	return openCmd	
+
+	return openCmd
 }

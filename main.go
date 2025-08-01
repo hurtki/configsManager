@@ -9,11 +9,10 @@ import (
 )
 
 func main() {
-	// making dependencies 
-	OsAppConfig := service.OsAppConfig {
-	}
-	
+	// making dependencies
+	OsAppConfig := service.OsAppConfig{}
+
 	rootCmd := cmd.NewRootCmd(&OsAppConfig)
-	
+
 	rootCmd.Execute()
 }

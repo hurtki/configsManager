@@ -10,7 +10,7 @@ import (
 )
 
 type KeysCmd struct {
-	Command *cobra.Command
+	Command   *cobra.Command
 	AppConfig *service.AppConfig
 }
 
@@ -25,12 +25,11 @@ func (k *KeysCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-
 func NewKeysCmd(AppConfig *service.AppConfig) KeysCmd {
 	keysCmd := KeysCmd{
 		AppConfig: AppConfig,
 	}
-	
+
 	cmd := &cobra.Command{
 		Use:   "keys",
 		Short: "List all configuration keys",
@@ -45,6 +44,6 @@ func NewKeysCmd(AppConfig *service.AppConfig) KeysCmd {
 		RunE: keysCmd.run,
 	}
 	keysCmd.Command = cmd
-	
-	return keysCmd	
+
+	return keysCmd
 }

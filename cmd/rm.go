@@ -4,13 +4,13 @@ Copyright © 2025 Alexey asboba2101@gmail.com >
 package cmd
 
 import (
+	"fmt"
 	service "github.com/hurtki/configsManager/internal/service"
 	"github.com/spf13/cobra"
-	"fmt"
 )
 
 type RmCmd struct {
-	Command *cobra.Command
+	Command   *cobra.Command
 	AppConfig *service.AppConfig
 }
 
@@ -26,12 +26,11 @@ func (k *RmCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-
 func NewRmCmd(AppConfig *service.AppConfig) RmCmd {
 	rmCmd := RmCmd{
 		AppConfig: AppConfig,
 	}
-	
+
 	cmd := &cobra.Command{
 		Use:   "rm [key]",
 		Short: "Delete a specific key from the configuration list",
@@ -48,6 +47,6 @@ func NewRmCmd(AppConfig *service.AppConfig) RmCmd {
 		RunE: rmCmd.run,
 	}
 	rmCmd.Command = cmd
-	
-	return rmCmd	
+
+	return rmCmd
 }

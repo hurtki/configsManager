@@ -15,22 +15,22 @@ type AppConfig struct {
 	// if false cm will ask you "If you want to overwrite"
 	ForceOverwrite *bool `json:"overwrite_if_exists"`
 	// is cm going to add the path if it doesn't exist
-	// if true cm won't ask you 
+	// if true cm won't ask you
 	// if false cm will ask you "If you want to add the non existing path"
-	ForceAddPath *bool `json:"force_add_path"` 
+	ForceAddPath *bool `json:"force_add_path"`
 }
 
 const (
 	configRelPath = "/.config/configManager.json"
 )
 
-// default pointers for structure 
+// default pointers for structure
 var bFalse = func() *bool { b := false; return &b }()
-var bEditor = func() *string { b := "vim"; return &b } ()
+var bEditor = func() *string { b := "vim"; return &b }()
 
 // DEFAULT CONFIG VALUES
 var defaultConfig = AppConfig{
-	Editor:        bEditor,
+	Editor:         bEditor,
 	ForceOverwrite: bFalse,
 	ForceAddPath:   bFalse,
 }
@@ -61,7 +61,6 @@ func (cfg *AppConfig) validateAppConfig() bool {
 	return changed
 }
 
-
 // GetConfig loads the configuration from config_path.
 // If the file does not exist, it is created with default settings.
 func GetConfig() (AppConfig, error) {
@@ -83,7 +82,7 @@ func GetConfig() (AppConfig, error) {
 		}
 		return defaultConfig, nil
 	}
-	
+
 	defer file.Close()
 
 	var config AppConfig
@@ -101,8 +100,7 @@ func GetConfig() (AppConfig, error) {
 	return config, nil
 }
 
-
-// saveConfig(path string, cfg AppConfig) rewrites a config on given path 
+// saveConfig(path string, cfg AppConfig) rewrites a config on given path
 func saveConfig(path string, cfg AppConfig) error {
 	file, err := os.Create(path)
 	if err != nil {
