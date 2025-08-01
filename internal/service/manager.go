@@ -225,6 +225,9 @@ func RemoveConfig(key string) error {
 }
 
 
-type AppConfig struct {
+type AppConfig interface {
+}
+
+type OsAppConfig struct {
 	
 }

@@ -5,36 +5,46 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-
 	service "github.com/hurtki/configsManager/internal/service"
 	"github.com/spf13/cobra"
 )
 
-// keysCmd represents the keys command
-var keysCmd = &cobra.Command{
-	Use:   "keys",
-	Short: "List all configuration keys",
-	Long: `The 'keys' command outputs all available configuration keys stored 
-in the user's configuration list.
-
-Usage example:
-  cm keys
-
-This command is useful to quickly see what configuration entries exist 
-and can be accessed or managed with other commands.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		keys, err := service.GetAllKeys()
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		for i := 0; i < len(keys); i++ {
-			fmt.Println(keys[i])
-		}
-	},
+type KeysCmd struct {
+	Command *cobra.Command
+	AppConfig *service.AppConfig
 }
 
-func init() {
-	rootCmd.AddCommand(keysCmd)
+func (k *KeysCmd) run(cmd *cobra.Command, args []string) error {
+	keys, err := service.GetAllKeys()
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(keys); i++ {
+		fmt.Println(keys[i])
+	}
+	return nil
+}
+
+
+func NewKeysCmd(AppConfig *service.AppConfig) KeysCmd {
+	keysCmd := KeysCmd{
+		AppConfig: AppConfig,
+	}
+	
+	cmd := &cobra.Command{
+		Use:   "keys",
+		Short: "List all configuration keys",
+		Long: `The 'keys' command outputs all available configuration keys stored 
+		in the user's configuration list.
+
+		Usage example:
+		cm keys
+
+		This command is useful to quickly see what configuration entries exist 
+		and can be accessed or managed with other commands.`,
+		RunE: keysCmd.run,
+	}
+	keysCmd.Command = cmd
+	
+	return keysCmd	
 }

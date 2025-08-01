@@ -50,8 +50,7 @@ func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 			value = args[0]
 			key, err = service.GenerateUniqueKeyForPath(value)
 			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
+				return err
 			}
 			fmt.Println("key assighned to your path:", key)
 		}

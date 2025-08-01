@@ -46,12 +46,23 @@ func init() {
 }
 
 
-func NewRootCmd(AppConfig *service.AppConfig) *cobra.Command {
+func NewRootCmd(AppConfig service.AppConfig) *cobra.Command {
 	// creating commands with dependencies 
-	addCmd := NewAddCmd(AppConfig)
+	addCmd := NewAddCmd(&AppConfig)
+	catCmd := NewCatCmd(&AppConfig)
+	keysCmd := NewKeysCmd(&AppConfig)
+	openCmd := NewOpenCmd(&AppConfig)
+	pathCmd := NewPathCmd(&AppConfig)
+	rmCmd := NewRmCmd(&AppConfig)
 
-
-	// adding them to root command
+	
+	// adding commands to root command
 	rootCmd.AddCommand(addCmd.Command)
+	rootCmd.AddCommand(catCmd.Command)
+	rootCmd.AddCommand(keysCmd.Command)
+	rootCmd.AddCommand(openCmd.Command)
+	rootCmd.AddCommand(pathCmd.Command)
+	rootCmd.AddCommand(rmCmd.Command)
+	
 	return rootCmd
 }

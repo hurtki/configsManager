@@ -10,10 +10,10 @@ import (
 
 func main() {
 	// making dependencies 
-	AppConfig := service.AppConfig {
+	OsAppConfig := service.OsAppConfig {
 	}
 	
-	rootCmd := cmd.NewRootCmd(&AppConfig)
+	rootCmd := cmd.NewRootCmd(&OsAppConfig)
 	
 	rootCmd.Execute()
 }
