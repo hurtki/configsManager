@@ -1,6 +1,3 @@
-/*
-Copyright © 2025 Alexey asboba2101@gmail.com >
-*/
 package cmd
 
 import (
@@ -65,7 +62,7 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 	// ========================
 	// key and value validating
 
-	if *appConfig.ForceOverwrite {
+	if !*appConfig.ForceOverwrite {
 		accept, err := c.InputService.AskUserYN("The key you want to assign already exist, want to overwrite?")
 		if err != nil {
 			return err
@@ -75,7 +72,7 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if *appConfig.ForceAddPath {
+	if !*appConfig.ForceAddPath {
 		accept, err := c.InputService.AskUserYN("The path you want to assign is not real, want to continue?")
 		if err != nil {
 			return err
