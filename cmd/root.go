@@ -4,7 +4,7 @@ Copyright © 2025 Alexey asboba2101@gmail.com >
 package cmd
 
 import (
-	"github.com/hurtki/configsManager/internal/service"
+	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
@@ -45,22 +45,29 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func NewRootCmd(AppConfig service.AppConfig) *cobra.Command {
+func NewRootCmd(AppConfigService services.AppConfigService,
+	InputService services.InputService,
+	ConfigsListService services.ConfigsListService,
+	OsService services.OsService,
+) *cobra.Command {
 	// creating commands with dependencies
-	addCmd := NewAddCmd(&AppConfig)
-	catCmd := NewCatCmd(&AppConfig)
-	keysCmd := NewKeysCmd(&AppConfig)
-	openCmd := NewOpenCmd(&AppConfig)
-	pathCmd := NewPathCmd(&AppConfig)
-	rmCmd := NewRmCmd(&AppConfig)
+	addCmd := NewAddCmd(AppConfigService, InputService, ConfigsListService)
+	catCmd := NewCatCmd(AppConfigService, ConfigsListService, OsService)
+	keysCmd := NewKeysCmd(AppConfigService, ConfigsListService)
+	openCmd := NewOpenCmd(AppConfigService, ConfigsListService, OsService)
+	pathCmd := NewPathCmd(AppConfigService, ConfigsListService)
+	rmCmd := NewRmCmd(AppConfigService, ConfigsListService)
+	initCmd := NewInitCmd(AppConfigService, ConfigsListService)
 
 	// adding commands to root command
-	rootCmd.AddCommand(addCmd.Command)
-	rootCmd.AddCommand(catCmd.Command)
-	rootCmd.AddCommand(keysCmd.Command)
-	rootCmd.AddCommand(openCmd.Command)
-	rootCmd.AddCommand(pathCmd.Command)
-	rootCmd.AddCommand(rmCmd.Command)
-
+	rootCmd.AddCommand(
+		addCmd.Command,
+		catCmd.Command,
+		keysCmd.Command,
+		openCmd.Command,
+		pathCmd.Command,
+		rmCmd.Command,
+		initCmd.Command,
+	)
 	return rootCmd
 }

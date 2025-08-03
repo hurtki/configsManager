@@ -5,18 +5,18 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-
-	service "github.com/hurtki/configsManager/internal/service"
+	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type AddCmd struct {
-	Command   *cobra.Command
-	AppConfig *service.AppConfig
+	Command            *cobra.Command
+	AppConfigService   services.AppConfigService
+	InputService       services.InputService
+	ConfigsListService services.ConfigsListService
 }
 
-func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
+func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 	// ========================
 	// args parsing
 
@@ -27,25 +27,31 @@ func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 	// 4. two arguments => key=first argument ; value=second argument
 
 	if len(args) < 1 {
-		data, ok := service.GetSTDIn()
+		data, ok := c.InputService.GetPipedInput()
 		if ok {
 			args = append(args, data)
 		} else {
 			return fmt.Errorf("not enough args")
 		}
 	}
+
+	appConfig, err := c.AppConfigService.Load()
+
+	if err != nil {
+		return err
+	}
+
 	var key string
 	var value string
-	var err error
 
 	if len(args) < 2 {
-		data, ok := service.GetSTDIn()
+		data, ok := c.InputService.GetPipedInput()
 		if ok {
 			value = data
 			key = args[0]
 		} else {
 			value = args[0]
-			key, err = service.GenerateUniqueKeyForPath(value)
+			key, err = c.ConfigsListService.GenerateUniqueKeyForPath(value)
 			if err != nil {
 				return err
 			}
@@ -59,27 +65,21 @@ func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 	// ========================
 	// key and value validating
 
-	shouldAskOverwrite, err := service.ShouldConfirmOverwrite(key)
-	if err != nil {
-		return err
-	}
-
-	if shouldAskOverwrite {
-		fmt.Println("The key you want to assign already exist, want to overwrite? y/n")
-		accept := service.AskUserYN(os.Stdin)
+	if *appConfig.ForceOverwrite {
+		accept, err := c.InputService.AskUserYN("The key you want to assign already exist, want to overwrite?")
+		if err != nil {
+			return err
+		}
 		if !accept {
 			return fmt.Errorf("operation cancelled by user")
 		}
 	}
 
-	shouldAskPathConfirmation, err := service.ShouldConfirmInvalidPath(value)
-	if err != nil {
-		return err
-	}
-
-	if shouldAskPathConfirmation {
-		fmt.Println("The path you want to assign is not real, want to continue? y/n")
-		accept := service.AskUserYN(os.Stdin)
+	if *appConfig.ForceAddPath {
+		accept, err := c.InputService.AskUserYN("The path you want to assign is not real, want to continue?")
+		if err != nil {
+			return err
+		}
 		if !accept {
 			return fmt.Errorf("operation cancelled by user")
 		}
@@ -88,7 +88,13 @@ func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 	// ========================
 	// config adding
 
-	err = service.AddConfig(key, value)
+	configsList, err := c.ConfigsListService.Load()
+	if err != nil {
+		return err
+	}
+	configsList.SetConfig(key, value)
+
+	err = c.ConfigsListService.Save(configsList)
 
 	if err != nil {
 		return err
@@ -96,9 +102,14 @@ func (a *AddCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewAddCmd(AppConfig *service.AppConfig) *AddCmd {
+func NewAddCmd(AppConfigService services.AppConfigService,
+	InputService services.InputService,
+	ConfigsListService services.ConfigsListService,
+) *AddCmd {
 	addCmd := AddCmd{
-		AppConfig: AppConfig,
+		AppConfigService:   AppConfigService,
+		InputService:       InputService,
+		ConfigsListService: ConfigsListService,
 	}
 
 	cmd := &cobra.Command{

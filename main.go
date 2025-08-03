@@ -5,14 +5,17 @@ package main
 
 import (
 	"github.com/hurtki/configsManager/cmd"
-	"github.com/hurtki/configsManager/internal/service"
+	"github.com/hurtki/configsManager/services"
 )
 
 func main() {
 	// making dependencies
-	OsAppConfig := service.OsAppConfig{}
+	AppConfigService := services.NewAppConfigServiceImpl()
+	StdInputService := services.NewStdInputService()
+	ConfigsListService := services.NewConfigsListServiceImpl()
+	OsService := services.NewOsServiceImpl()
 
-	rootCmd := cmd.NewRootCmd(&OsAppConfig)
+	rootCmd := cmd.NewRootCmd(AppConfigService, StdInputService, ConfigsListService, OsService)
 
 	rootCmd.Execute()
 }

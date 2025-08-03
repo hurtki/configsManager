@@ -5,29 +5,36 @@ package cmd
 
 import (
 	"fmt"
-	service "github.com/hurtki/configsManager/internal/service"
+	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type KeysCmd struct {
-	Command   *cobra.Command
-	AppConfig *service.AppConfig
+	Command            *cobra.Command
+	AppConfigService   services.AppConfigService
+	ConfigsListService services.ConfigsListService
 }
 
-func (k *KeysCmd) run(cmd *cobra.Command, args []string) error {
-	keys, err := service.GetAllKeys()
+func (c *KeysCmd) run(cmd *cobra.Command, args []string) error {
+
+	configsList, err := c.ConfigsListService.Load()
 	if err != nil {
 		return err
 	}
+	keys := configsList.GetAllKeys()
+
 	for i := 0; i < len(keys); i++ {
 		fmt.Println(keys[i])
 	}
 	return nil
 }
 
-func NewKeysCmd(AppConfig *service.AppConfig) KeysCmd {
+func NewKeysCmd(AppConfig services.AppConfigService,
+	ConfigsListService services.ConfigsListService,
+) KeysCmd {
 	keysCmd := KeysCmd{
-		AppConfig: AppConfig,
+		AppConfigService:   AppConfig,
+		ConfigsListService: ConfigsListService,
 	}
 
 	cmd := &cobra.Command{

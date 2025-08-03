@@ -5,30 +5,36 @@ package cmd
 
 import (
 	"fmt"
-	service "github.com/hurtki/configsManager/internal/service"
+	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type RmCmd struct {
-	Command   *cobra.Command
-	AppConfig *service.AppConfig
+	Command            *cobra.Command
+	AppConfigService   services.AppConfigService
+	ConfigsListService services.ConfigsListService
 }
 
-func (k *RmCmd) run(cmd *cobra.Command, args []string) error {
+func (c *RmCmd) run(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("not enough args")
 	}
 	key := args[0]
-	err := service.RemoveConfig(key)
+	configsList, err := c.ConfigsListService.Load()
 	if err != nil {
+		return err
+	}
+	configsList.RemoveConfig(key)
+	if err := c.ConfigsListService.Save(configsList); err != nil {
 		return err
 	}
 	return nil
 }
 
-func NewRmCmd(AppConfig *service.AppConfig) RmCmd {
+func NewRmCmd(AppConfig services.AppConfigService, ConfigsListService services.ConfigsListService) RmCmd {
 	rmCmd := RmCmd{
-		AppConfig: AppConfig,
+		AppConfigService:   AppConfig,
+		ConfigsListService: ConfigsListService,
 	}
 
 	cmd := &cobra.Command{

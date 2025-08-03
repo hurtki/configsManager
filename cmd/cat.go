@@ -5,13 +5,15 @@ package cmd
 
 import (
 	"fmt"
-	service "github.com/hurtki/configsManager/internal/service"
+	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type CatCmd struct {
-	Command   *cobra.Command
-	AppConfig *service.AppConfig
+	Command            *cobra.Command
+	AppConfigService   services.AppConfigService
+	ConfigsListService services.ConfigsListService
+	OsService          services.OsService
 }
 
 // catCmd represents the cat command
@@ -21,17 +23,32 @@ func (c *CatCmd) run(cmd *cobra.Command, args []string) error {
 	}
 	key := args[0]
 
-	data, err := service.GetFileDataByConfigKey(key)
+	configsList, err := c.ConfigsListService.Load()
 	if err != nil {
 		return err
 	}
-	fmt.Println(data)
+
+	path, ok := configsList.GetPath(key)
+	if !ok {
+		return fmt.Errorf("key not found")
+	}
+
+	file, err := c.OsService.GetFileData(path)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(file))
 	return nil
 }
 
-func NewCatCmd(AppConfig *service.AppConfig) *CatCmd {
+func NewCatCmd(AppConfig services.AppConfigService,
+	ConfigsListService services.ConfigsListService,
+	OsService services.OsService,
+) *CatCmd {
 	catCmd := CatCmd{
-		AppConfig: AppConfig,
+		AppConfigService:   AppConfig,
+		OsService:          OsService,
+		ConfigsListService: ConfigsListService,
 	}
 
 	cmd := &cobra.Command{

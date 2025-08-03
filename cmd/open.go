@@ -4,26 +4,47 @@ Copyright © 2025 Alexey asboba2101@gmail.com >
 package cmd
 
 import (
-	service "github.com/hurtki/configsManager/internal/service"
+	"fmt"
+
+	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type OpenCmd struct {
-	Command   *cobra.Command
-	AppConfig *service.AppConfig
+	Command            *cobra.Command
+	AppConfigService   services.AppConfigService
+	OsService          services.OsService
+	ConfigsListService services.ConfigsListService
 }
 
-func (k *OpenCmd) run(cmd *cobra.Command, args []string) error {
-	err := service.OpenByKey(args[0])
+func (c *OpenCmd) run(cmd *cobra.Command, args []string) error {
+	configsList, err := c.ConfigsListService.Load()
 	if err != nil {
 		return err
 	}
-	return nil
+	appConfig, err := c.AppConfigService.Load()
+	if err != nil {
+		return nil
+	}
+	editor := appConfig.Editor
+
+	key := args[0]
+	path, ok := configsList.GetPath(key)
+	if !ok {
+		return fmt.Errorf("key not found")
+	}
+	fmt.Println(path)
+	return c.OsService.OpenInEditor(*editor, path)
 }
 
-func NewOpenCmd(AppConfig *service.AppConfig) OpenCmd {
+func NewOpenCmd(AppConfig services.AppConfigService,
+	ConfigsListService services.ConfigsListService,
+	OsService services.OsService,
+) OpenCmd {
 	openCmd := OpenCmd{
-		AppConfig: AppConfig,
+		AppConfigService:   AppConfig,
+		OsService:          OsService,
+		ConfigsListService: ConfigsListService,
 	}
 
 	cmd := &cobra.Command{

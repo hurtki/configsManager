@@ -5,31 +5,37 @@ package cmd
 
 import (
 	"fmt"
-	service "github.com/hurtki/configsManager/internal/service"
+	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type PathCmd struct {
-	Command   *cobra.Command
-	AppConfig *service.AppConfig
+	Command            *cobra.Command
+	AppConfigService   services.AppConfigService
+	ConfigsListService services.ConfigsListService
 }
 
-func (k *PathCmd) run(cmd *cobra.Command, args []string) error {
+func (c *PathCmd) run(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("not enough args: please specify the config key")
 	}
 	key := args[0]
-	value, err := service.GetPathByKey(key)
+	configsList, err := c.ConfigsListService.Load()
 	if err != nil {
 		return err
 	}
-	fmt.Println(value)
+	path, ok := configsList.GetPath(key)
+	if !ok {
+		return fmt.Errorf("key not found")
+	}
+	fmt.Println(path)
 	return nil
 }
 
-func NewPathCmd(AppConfig *service.AppConfig) PathCmd {
+func NewPathCmd(AppConfig services.AppConfigService, ConfigsListService services.ConfigsListService) PathCmd {
 	pathCmd := PathCmd{
-		AppConfig: AppConfig,
+		AppConfigService:   AppConfig,
+		ConfigsListService: ConfigsListService,
 	}
 
 	cmd := &cobra.Command{
