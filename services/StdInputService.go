@@ -9,7 +9,7 @@ import (
 )
 
 type InputService interface {
-	AskUserYN(prompt string) (bool, error)
+	AskUser(prompt string, options []string) (string, error)
 	GetPipedInput() (string, bool)
 }
 
@@ -21,15 +21,22 @@ func NewStdInputService() *StdInputService {
 	return &StdInputService{reader: os.Stdin}
 }
 
-func (s *StdInputService) AskUserYN(prompt string) (bool, error) {
-	fmt.Print(prompt + " [y/n]: ")
+func (s *StdInputService) AskUser(prompt string, options []string) (string, error) {
+	fmt.Printf("%s [%s]: ", prompt, strings.Join(options, "/"))
+
 	scanner := bufio.NewScanner(s.reader)
 	if scanner.Scan() {
-		answer := scanner.Text()
-		answer = strings.TrimSpace(strings.ToLower(answer))
-		return answer == "y" || answer == "yes", nil
+		answer := strings.TrimSpace(strings.ToLower(scanner.Text()))
+
+		for _, opt := range options {
+			if answer == strings.ToLower(opt) {
+				return answer, nil
+			}
+		}
+
+		return "", fmt.Errorf("invalid input: '%s' (allowed: %s)", answer, strings.Join(options, ", "))
 	}
-	return false, scanner.Err()
+	return "", scanner.Err()
 }
 
 func (s *StdInputService) GetPipedInput() (string, bool) {

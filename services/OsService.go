@@ -8,6 +8,7 @@ import (
 type OsService interface {
 	GetFileData(path string) ([]byte, error)
 	OpenInEditor(editor, path string) error
+	FileExists(path string) (bool, error)
 }
 
 type OsServiceImpl struct{}
@@ -34,4 +35,15 @@ func (s *OsServiceImpl) OpenInEditor(editor, path string) error {
 	err := cmd.Run()
 
 	return err
+}
+
+func (s *OsServiceImpl) FileExists(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if err == nil {
+		return !info.IsDir(), nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }

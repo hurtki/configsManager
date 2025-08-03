@@ -48,7 +48,7 @@ func NewRootCmd(AppConfigService services.AppConfigService,
 	OsService services.OsService,
 ) *cobra.Command {
 	// creating commands with dependencies
-	addCmd := NewAddCmd(AppConfigService, InputService, ConfigsListService)
+	addCmd := NewAddCmd(AppConfigService, InputService, ConfigsListService, OsService)
 	catCmd := NewCatCmd(AppConfigService, ConfigsListService, OsService)
 	keysCmd := NewKeysCmd(AppConfigService, ConfigsListService)
 	openCmd := NewOpenCmd(AppConfigService, ConfigsListService, OsService)

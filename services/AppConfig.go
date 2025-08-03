@@ -3,10 +3,12 @@ package services
 type AppConfig struct {
 	// Editor command that command "open" uses
 	Editor *string `json:"editor"`
-	// Is cm going to overwrite an existing key in configs list
-	// if true cm won't ask you
-	// if false cm will ask you "If you want to overwrite"
-	ForceOverwrite *bool `json:"overwrite_if_exists"`
+	// what cm will do when it sees an already exisging key
+	// "default" - cm will ask you what to do + will notice to change this setting
+	// "o" - cm will overwrite the existing key
+	// "n" - cm will automatically create a new name
+	// "ask" - cm will always ask you what to do
+	IfKeyExists *string `json:"if_key_exists"`
 	// is cm going to add the path if it doesn't exist
 	// if true cm won't ask you
 	// if false cm will ask you "If you want to add the non existing path"
@@ -19,9 +21,22 @@ func ptrString(s string) *string { return &s }
 
 // default config
 var defaultConfig = AppConfig{
-	Editor:         ptrString("vim"),
-	ForceOverwrite: ptrBool(false),
-	ForceAddPath:   ptrBool(false),
+	Editor:       ptrString("vim"),
+	IfKeyExists:  ptrString("default"),
+	ForceAddPath: ptrBool(false),
+}
+
+// validate_IfKeyExists() returns True if everythink write and false if somethink is wrong with IfKeyExists field
+func (cfg *AppConfig) validate_IfKeyExists() bool {
+	if cfg.IfKeyExists == nil {
+		return true
+	}
+	switch *cfg.IfKeyExists {
+	case "o", "default", "n", "ask":
+		return false
+	default:
+		return true
+	}
 }
 
 // validateAppConfig() can validate and insert default values
@@ -35,9 +50,9 @@ func (cfg *AppConfig) validateAppConfig() bool {
 		changed = true
 	}
 
-	if cfg.ForceOverwrite == nil {
-		def := *defaultConfig.ForceOverwrite
-		cfg.ForceOverwrite = &def
+	if cfg.validate_IfKeyExists() {
+		def := *defaultConfig.IfKeyExists
+		cfg.IfKeyExists = &def
 		changed = true
 	}
 
