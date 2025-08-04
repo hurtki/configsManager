@@ -86,20 +86,21 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 			switch choice {
 			case "o":
 			case "n":
-				key, err = c.ConfigsListService.GenerateUniqueKeyForPath(value)
+				key, err = c.ConfigsListService.GenerateUniqueKeyForPath(key)
 				if err != nil {
 					return err
 				}
-				fmt.Printf("New generated key: %s", key)
+				fmt.Printf("New generated key: %s\n", key)
 			case "q":
 				return nil
 			}
 		case "o":
 		case "n":
-			key, err = c.ConfigsListService.GenerateUniqueKeyForPath(value)
+			key, err = c.ConfigsListService.GenerateUniqueKeyForPath(key)
 			if err != nil {
 				return err
 			}
+			fmt.Printf("New generated key: %s\n", key)
 		case "ask":
 			prompt := fmt.Sprintf(
 				"%s already exists in keys, what do you want to do:\n"+
@@ -116,11 +117,11 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 			switch choice {
 			case "o":
 			case "n":
-				key, err = c.ConfigsListService.GenerateUniqueKeyForPath(value)
+				key, err = c.ConfigsListService.GenerateUniqueKeyForPath(key)
 				if err != nil {
 					return err
 				}
-				fmt.Printf("New generated key: %s", key)
+				fmt.Printf("New generated key: %s\n", key)
 			case "q":
 				return nil
 			}
