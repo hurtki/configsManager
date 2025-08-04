@@ -30,7 +30,6 @@ func (c *OpenCmd) run(cmd *cobra.Command, args []string) error {
 	if !ok {
 		return fmt.Errorf("key not found")
 	}
-	fmt.Println(path)
 	return c.OsService.OpenInEditor(*editor, path)
 }
 
