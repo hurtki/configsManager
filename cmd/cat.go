@@ -16,7 +16,7 @@ type CatCmd struct {
 // catCmd represents the cat command
 func (c *CatCmd) run(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		fmt.Printf("missing required argument 'key'")
+		return fmt.Errorf("missing required argument 'key'")
 	}
 	key := args[0]
 
