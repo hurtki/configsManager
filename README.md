@@ -17,6 +17,7 @@ Built with [Cobra CLI](https://github.com/spf13/cobra) library to provide a powe
 curl -L https://github.com/hurtki/configsManager/releases/latest/download/cm-linux-amd64 -o cm
 chmod +x cm
 sudo mv cm /usr/local/bin/
+cm init
 ```
 
 ### macOS Intel 
@@ -24,6 +25,7 @@ sudo mv cm /usr/local/bin/
 curl -L https://github.com/hurtki/configsManager/releases/latest/download/cm-darwin-amd64 -o cm
 chmod +x cm
 sudo mv cm /usr/local/bin/
+cm init
 ```
 
 ### Linux ARM64
@@ -31,6 +33,7 @@ sudo mv cm /usr/local/bin/
 curl -L https://github.com/hurtki/configsManager/releases/latest/download/cm-linux-arm64 -o cm
 chmod +x cm
 sudo mv cm /usr/local/bin/
+cm init
 ```
 
 ### macOS Apple Silicon(ARM)
@@ -38,17 +41,11 @@ sudo mv cm /usr/local/bin/
 curl -L https://github.com/hurtki/configsManager/releases/latest/download/cm-darwin-arm64 -o cm
 chmod +x cm
 sudo mv cm /usr/local/bin/
+cm init
 ```
-### Windows AMD64 (64-bit)
-Download latest release 
-https://github.com/hurtki/configsManager/releases/latest/download/cm-windows-amd64.exe
 
-Rename to cm.exe
-Place it in a folder that is in the PATH environment variable, for example:
-`C:\Users\YourUser\AppData\Local\Microsoft\WindowsApp`
-
-# Usage
-`cm [command]`
+# Initializing 
+`cm init`
 
 ### Available Commands:
   ### add
@@ -110,15 +107,15 @@ You can open it anytime with:
 cm open cm_config
 ````
 
-The config is automatically created at:
-`~/.config/configManager.json`
+The tool folder is automatically created:
+`~/.config/configsManager/`
 
 Example structure:
 
 ```json
 {
   "editor": "vim",
-  "overwrite_if_exists": false,
+  "if_key_exists": "default",
   "force_add_path": false
 }
 ```
@@ -140,10 +137,12 @@ Example:
 
 ### ⚠️ `overwrite_if_exists`
 
-**Default:** `false`
+**Default:** `Default`
 
-* If `false`, the tool will ask you to confirm before overwriting an existing key.
-* If `true`, it will overwrite existing keys without asking.
+* `default` - tool will ask you what to do + will notice to change this setting
+* `o` - tool will overwrite the existing key
+* `n` - tool will automatically create a new name
+* `ask` - tool will always ask you what to do
 
 ---
 
