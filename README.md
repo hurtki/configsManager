@@ -135,7 +135,7 @@ Example:
 
 ---
 
-### ⚠️ `overwrite_if_exists`
+### ⚠️ `if_key_exists`
 
 **Default:** `Default`
 
