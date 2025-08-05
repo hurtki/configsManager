@@ -70,13 +70,9 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 	if configsList.HasKey(key) {
 		switch *appConfig.IfKeyExists {
 		case "default", "ask":
-			var err error
 			key, err = c.resolveKeyConflict(key, *appConfig.IfKeyExists)
 			if err != nil {
 				return err
-			}
-			if key == "" {
-				return nil
 			}
 		case "o":
 		case "n":
@@ -180,7 +176,7 @@ func (c *AddCmd) resolveKeyConflict(key string, mode string) (string, error) {
 		fmt.Printf("New generated key: %s\n", newKey)
 		return newKey, nil
 	case "q":
-		return "", nil
+		return "", ErrUserAborted
 	default:
 		return "", fmt.Errorf("unexpected choice: %s", choice)
 	}

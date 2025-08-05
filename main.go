@@ -4,6 +4,7 @@ Copyright © 2025 Alexey asboba2101@gmail.com >
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -21,6 +22,9 @@ func main() {
 	rootCmd := cmd.NewRootCmd(AppConfigService, StdInputService, ConfigsListService, OsService)
 
 	if err := rootCmd.Execute(); err != nil {
+		if errors.Is(err, cmd.ErrUserAborted) {
+			os.Exit(1)
+		}
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
