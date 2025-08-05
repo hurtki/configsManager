@@ -29,6 +29,8 @@ func TestAddCmd_ValidConfigAddOneParam(t *testing.T) {
 
 	mockOsService.EXPECT().FileExists("config.json").Return(true, nil)
 
+	mockOsService.EXPECT().GetAbsolutePath("config.json").Return("config.json", nil)
+
 	mockConfigsListService.EXPECT().Save(returnConfigsList).Return(nil)
 	addCmd := cmd.NewAddCmd(mockAppConfigService, mockInputService, mockConfigsListService, mockOsService)
 	err := addCmd.Command.RunE(addCmd.Command, args)
@@ -50,11 +52,13 @@ func TestAddCmd_ValidConfigAddTwoParam(t *testing.T) {
 	args := []string{"config", "config.json"}
 	returnAppConfig := services.NewDefaultAppConfig()
 	returnConfigsList := services.GetDefaultConfigsList("")
-
+	mockInputService.EXPECT().GetPipedInput().Return("", false)
 	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
 	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
 
 	mockOsService.EXPECT().FileExists("config.json").Return(true, nil)
+
+	mockOsService.EXPECT().GetAbsolutePath("config.json").Return("config.json", nil)
 
 	mockConfigsListService.EXPECT().Save(returnConfigsList).Return(nil)
 	addCmd := cmd.NewAddCmd(mockAppConfigService, mockInputService, mockConfigsListService, mockOsService)

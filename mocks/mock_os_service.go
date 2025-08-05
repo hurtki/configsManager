@@ -54,6 +54,21 @@ func (mr *MockOsServiceMockRecorder) FileExists(path any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FileExists", reflect.TypeOf((*MockOsService)(nil).FileExists), path)
 }
 
+// GetAbsolutePath mocks base method.
+func (m *MockOsService) GetAbsolutePath(path string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAbsolutePath", path)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAbsolutePath indicates an expected call of GetAbsolutePath.
+func (mr *MockOsServiceMockRecorder) GetAbsolutePath(path any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAbsolutePath", reflect.TypeOf((*MockOsService)(nil).GetAbsolutePath), path)
+}
+
 // GetFileData mocks base method.
 func (m *MockOsService) GetFileData(path string) ([]byte, error) {
 	m.ctrl.T.Helper()
