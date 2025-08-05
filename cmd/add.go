@@ -69,62 +69,23 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 
 	if configsList.HasKey(key) {
 		switch *appConfig.IfKeyExists {
-		case "default":
-			prompt := fmt.Sprintf(
-				"%s already exists in keys, what do you want to do:\n"+
-					"o - overwrite\n"+
-					"n - create with key %s[num]\n"+
-					"q - quit (if you don't want to get this message set IfKeyExist to skip it)\n",
-				key, key,
-			)
-
-			choice, err := c.InputService.AskUser(prompt, []string{"o", "n", "q"})
-
+		case "default", "ask":
+			var err error
+			key, err = c.resolveKeyConflict(key, *appConfig.IfKeyExists)
 			if err != nil {
 				return err
 			}
-			switch choice {
-			case "o":
-			case "n":
-				key, err = c.ConfigsListService.GenerateUniqueKeyForPath(key)
-				if err != nil {
-					return err
-				}
-				fmt.Printf("New generated key: %s\n", key)
-			case "q":
+			if key == "" {
 				return nil
 			}
 		case "o":
 		case "n":
+			var err error
 			key, err = c.ConfigsListService.GenerateUniqueKeyForPath(key)
 			if err != nil {
 				return err
 			}
 			fmt.Printf("New generated key: %s\n", key)
-		case "ask":
-			prompt := fmt.Sprintf(
-				"%s already exists in keys, what do you want to do:\n"+
-					"o - overwrite\n"+
-					"n - create with key %s[num]\n"+
-					"q - quit \n",
-				key, key,
-			)
-			choice, err := c.InputService.AskUser(prompt, []string{"o", "n", "q"})
-
-			if err != nil {
-				return err
-			}
-			switch choice {
-			case "o":
-			case "n":
-				key, err = c.ConfigsListService.GenerateUniqueKeyForPath(key)
-				if err != nil {
-					return err
-				}
-				fmt.Printf("New generated key: %s\n", key)
-			case "q":
-				return nil
-			}
 		}
 	}
 
@@ -187,4 +148,40 @@ func NewAddCmd(AppConfigService services.AppConfigService,
 	addCmd.Command = cmd
 
 	return &addCmd
+}
+
+func (c *AddCmd) resolveKeyConflict(key string, mode string) (string, error) {
+	basePrompt := fmt.Sprintf(
+		"%s already exists in keys, what do you want to do:\n"+
+			"o - overwrite\n"+
+			"n - create with key %s[num]\n"+
+			"q - quit",
+		key, key,
+	)
+
+	if mode == "default" {
+		basePrompt += " (if you don't want to get this message set IfKeyExist to skip it)"
+	}
+	basePrompt += "\n"
+
+	choice, err := c.InputService.AskUser(basePrompt, []string{"o", "n", "q"})
+	if err != nil {
+		return "", err
+	}
+
+	switch choice {
+	case "o":
+		return key, nil
+	case "n":
+		newKey, err := c.ConfigsListService.GenerateUniqueKeyForPath(key)
+		if err != nil {
+			return "", err
+		}
+		fmt.Printf("New generated key: %s\n", newKey)
+		return newKey, nil
+	case "q":
+		return "", nil
+	default:
+		return "", fmt.Errorf("unexpected choice: %s", choice)
+	}
 }
