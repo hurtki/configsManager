@@ -27,13 +27,10 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 	// 3. one argument(should be a path) + NO stdIN => key=unique key from argument ; value=argument
 	// 4. two arguments => key=first argument ; value=second argument
 
-	if len(args) < 1 {
-		data, ok := c.InputService.GetPipedInput()
-		if ok {
-			args = append(args, data)
-		} else {
-			return fmt.Errorf("not enough args")
-		}
+	pipedData, isPipe := c.InputService.GetPipedInput()
+	if len(args) < 1 && !isPipe {
+		return fmt.Errorf("not enough args")
+
 	}
 
 	appConfig, err := c.AppConfigService.Load()
@@ -46,10 +43,9 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 	var value string
 
 	if len(args) < 2 {
-		data, ok := c.InputService.GetPipedInput()
-		if ok {
-			value = data
+		if isPipe {
 			key = args[0]
+			value = pipedData
 		} else {
 			value = args[0]
 			key = strings.TrimSuffix(filepath.Base(args[0]), filepath.Ext(args[0]))
@@ -88,6 +84,14 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 	path_exists, err := c.OsService.FileExists(value)
 	if err != nil {
 		return err
+	}
+
+	// getting absolute path if the path actually exists
+	if path_exists {
+		value, err = c.OsService.GetAbsolutePath(value)
+		if err != nil {
+			return err
+		}
 	}
 
 	if !*appConfig.ForceAddPath && !path_exists {

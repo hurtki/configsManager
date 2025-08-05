@@ -3,12 +3,14 @@ package services
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 type OsService interface {
 	GetFileData(path string) ([]byte, error)
 	OpenInEditor(editor, path string) error
 	FileExists(path string) (bool, error)
+	GetAbsolutePath(path string) (string, error)
 }
 
 type OsServiceImpl struct{}
@@ -46,4 +48,8 @@ func (s *OsServiceImpl) FileExists(path string) (bool, error) {
 		return false, nil
 	}
 	return false, err
+}
+
+func (s *OsServiceImpl) GetAbsolutePath(path string) (string, error) {
+	return filepath.Abs(path)
 }
