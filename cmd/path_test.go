@@ -9,7 +9,7 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// Test for valid path adding
+// Test for valid path checking
 func TestPathCmd_ValidPathAdding(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -18,15 +18,15 @@ func TestPathCmd_ValidPathAdding(t *testing.T) {
 	mockConfigsListService := mocks.NewMockConfigsListService(ctrl)
 	key := "cm_config"
 	path := "some_path"
-	returnAppConfig := services.GetDefaultConfigsList("")
-	returnAppConfig.SetConfig(key, path)
-	mockConfigsListService.EXPECT().Load().Return(returnAppConfig, nil)
+	returnConfigsList := services.GetDefaultConfigsList("")
+	returnConfigsList.SetConfig(key, path)
+	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
 
 	pathCmd := cmd.NewPathCmd(mockAppConfigService, mockConfigsListService)
 	args := []string{key}
 	err := pathCmd.Command.RunE(pathCmd.Command, args)
 	if err != nil {
-		t.Errorf("excpected no error on adding, got %v", err)
+		t.Errorf("excpected no error on getting path, got %v", err)
 	}
 }
 
