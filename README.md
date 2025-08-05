@@ -1,6 +1,7 @@
 # ConfigsManager
 ConfigsManager is a simple and efficient CLI application that helps you 
 manage your configuration files by associating keys with file paths.
+**Supports only UNIX-like systems.**
 
 Built with [Cobra CLI](https://github.com/spf13/cobra) library to provide a powerful and user-friendly command line interface.
 
