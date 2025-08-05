@@ -22,14 +22,20 @@ func NewStdInputService() *StdInputService {
 }
 
 func (s *StdInputService) AskUser(prompt string, options []string) (string, error) {
-	// opening sraight terminal unix interface
+	// opening straight terminal unix interface
 	tty, err := os.Open("/dev/tty")
 	if err != nil {
 		return "", fmt.Errorf("failed to open /dev/tty: %w", err)
 	}
-	defer tty.Close()
+	defer func() {
+		if err := tty.Close(); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "error closing tty: %v\n", err)
+		}
+	}()
 
-	fmt.Fprintf(os.Stdout, "%s [%s]: ", prompt, strings.Join(options, "/"))
+	if _, err := fmt.Fprintf(os.Stdout, "%s [%s]: ", prompt, strings.Join(options, "/")); err != nil {
+		return "", err
+	}
 
 	scanner := bufio.NewScanner(tty)
 	if scanner.Scan() {
@@ -49,7 +55,6 @@ func (s *StdInputService) AskUser(prompt string, options []string) (string, erro
 	}
 	return "", fmt.Errorf("no input provided")
 }
-
 
 func (s *StdInputService) GetPipedInput() (string, bool) {
 	stat, err := os.Stdin.Stat()
