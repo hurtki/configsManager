@@ -26,6 +26,10 @@ var defaultConfig = AppConfig{
 	ForceAddPath: ptrBool(false),
 }
 
+func NewDefaultAppConfig() *AppConfig {
+	return &defaultConfig
+}
+
 // validate_IfKeyExists() returns True if everythink write and false if somethink is wrong with IfKeyExists field
 func (cfg *AppConfig) validate_IfKeyExists() bool {
 	if cfg.IfKeyExists == nil {
