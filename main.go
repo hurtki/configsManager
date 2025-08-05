@@ -23,9 +23,10 @@ func main() {
 
 	if err := rootCmd.Execute(); err != nil {
 		if errors.Is(err, cmd.ErrUserAborted) {
-			os.Exit(1)
+			os.Exit(3)
 		}
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Println("For help with this command: 'cm help'")
 		os.Exit(1)
 	}
 }

@@ -66,5 +66,10 @@ func NewRootCmd(AppConfigService services.AppConfigService,
 		rmCmd.Command,
 		initCmd.Command,
 	)
+
+	// no errors handling from cobra
+	rootCmd.SilenceErrors = true
+	rootCmd.SilenceUsage = true
+
 	return rootCmd
 }
