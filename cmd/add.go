@@ -43,7 +43,10 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 	var value string
 
 	if len(args) < 2 {
-		if isPipe {
+		if isPipe && len(args) == 0 {
+			key = strings.TrimSuffix(filepath.Base(pipedData), filepath.Ext(pipedData))
+			value = pipedData
+		} else if isPipe && len(args) == 1 {
 			key = args[0]
 			value = pipedData
 		} else {
