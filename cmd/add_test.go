@@ -9,7 +9,6 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-
 // === No args + stdin ===
 // test for valid config adding no args with pipe WIP
 
@@ -44,7 +43,7 @@ func TestAddCmd_ValidConfigAddNoParamWithPipe(t *testing.T) {
 	}
 }
 
-// test for not valid config adding no args and no STDIN 
+// test for not valid config adding no args and no STDIN
 
 func TestAddCmd_ValidConfigAddNoParamNoPipe(t *testing.T) {
 
@@ -58,18 +57,15 @@ func TestAddCmd_ValidConfigAddNoParamNoPipe(t *testing.T) {
 	args := []string{}
 
 	mockInputService.EXPECT().GetPipedInput().Return("", false)
-	
+
 	addCmd := cmd.NewAddCmd(mockAppConfigService, mockInputService, mockConfigsListService, mockOsService)
-	
+
 	err := addCmd.Command.RunE(addCmd.Command, args)
 	if err.Error() != "not enough args" {
 		t.Errorf("excpected error: 'not enough args' while adding, got %s", err.Error())
 	}
 
 }
-
-
-
 
 // test for valid config adding one arg
 func TestAddCmd_ValidConfigAddOneParam(t *testing.T) {
@@ -129,4 +125,3 @@ func TestAddCmd_ValidConfigAddTwoParam(t *testing.T) {
 		t.Errorf("excpected no error while adding, got %d", err)
 	}
 }
-
