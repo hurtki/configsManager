@@ -117,7 +117,6 @@ Example structure:
 {
   "editor": "vim",
   "if_key_exists": "default",
-  "force_add_path": false
 }
 ```
 
@@ -138,7 +137,7 @@ Example:
 
 ### ⚠️ `if_key_exists`
 
-**Default:** `Default`
+**Default:** `default`
 
 * `default` - tool will ask you what to do + will notice to change this setting
 * `o` - tool will overwrite the existing key
@@ -146,16 +145,6 @@ Example:
 * `ask` - tool will always ask you what to do
 
 ---
-
-### 🛡️ `force_add_path`
-
-**Default:** `false`
-
-* If `false`, the tool will ask for confirmation before adding a path that doesn't exist.
-* If `true`, it will add such paths without any confirmation.
-
----
-
 
 
 
