@@ -51,23 +51,26 @@ cm init
 ### Available Commands:
   ### add
   Add a new configuration key with its associated file path
-  ```
+  ```sh
   cm add [config name] [config absolute/realive path]
   ```
   Auto creating a name for config
-  ```
+  ```sh
   cm add [config absolute/realive path]
   ```
   Add a new config using stdIN
+  ```sh
+  realpath [path] | cm add [config name] #or nothing if you want to auto create a name for config
+  # tool waits from you to give a path using pipe, not config name
   ```
-  realpath [path] | cm add [config name]/or nothing if you want to auto create a name for config
-  ```
+  > **If tool sees that given path doesn't exist, it will automatically create it, and will notify you where it was created!**
   ---
   ### rm
   Remove a config from list by key
   ```
   cm rm [config key]
   ```
+  > **Returns nothing if operation was successful**
   ---
   ### cat
   Print the content of the config file for a given key
@@ -117,7 +120,6 @@ Example structure:
 {
   "editor": "vim",
   "if_key_exists": "default",
-  "force_add_path": false
 }
 ```
 
@@ -138,7 +140,7 @@ Example:
 
 ### ⚠️ `if_key_exists`
 
-**Default:** `Default`
+**Default:** `default`
 
 * `default` - tool will ask you what to do + will notice to change this setting
 * `o` - tool will overwrite the existing key
@@ -146,16 +148,6 @@ Example:
 * `ask` - tool will always ask you what to do
 
 ---
-
-### 🛡️ `force_add_path`
-
-**Default:** `false`
-
-* If `false`, the tool will ask for confirmation before adding a path that doesn't exist.
-* If `true`, it will add such paths without any confirmation.
-
----
-
 
 
 

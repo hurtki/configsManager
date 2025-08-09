@@ -95,18 +95,16 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	if !*appConfig.ForceAddPath && !path_exists {
-		result, err := c.InputService.AskUser("The path you want to assign is not real, want to continue?",
-			[]string{"y", "n"},
-		)
+	} else {
+		err = c.OsService.MakePathAndFile(value)
 		if err != nil {
 			return err
 		}
-		if result == "n" {
-			return nil
+		value, err = c.OsService.GetAbsolutePath(value)
+		if err != nil {
+			return err
 		}
+		fmt.Printf("file created at path: %s\n", value)
 	}
 
 	// ========================

@@ -9,10 +9,6 @@ type AppConfig struct {
 	// "n" - cm will automatically create a new name
 	// "ask" - cm will always ask you what to do
 	IfKeyExists *string `json:"if_key_exists"`
-	// is cm going to add the path if it doesn't exist
-	// if true cm won't ask you
-	// if false cm will ask you "If you want to add the non existing path"
-	ForceAddPath *bool `json:"force_add_path"`
 }
 
 // default pointers for default config
@@ -21,9 +17,8 @@ func ptrString(s string) *string { return &s }
 
 // default config
 var defaultConfig = AppConfig{
-	Editor:       ptrString("vim"),
-	IfKeyExists:  ptrString("default"),
-	ForceAddPath: ptrBool(false),
+	Editor:      ptrString("vim"),
+	IfKeyExists: ptrString("default"),
 }
 
 func NewDefaultAppConfig() *AppConfig {
@@ -57,12 +52,6 @@ func (cfg *AppConfig) validateAppConfig() bool {
 	if cfg.validate_IfKeyExists() {
 		def := *defaultConfig.IfKeyExists
 		cfg.IfKeyExists = &def
-		changed = true
-	}
-
-	if cfg.ForceAddPath == nil {
-		def := *defaultConfig.ForceAddPath
-		cfg.ForceAddPath = &def
 		changed = true
 	}
 

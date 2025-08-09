@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/hurtki/configsManager/cmd"
@@ -8,7 +9,6 @@ import (
 	"github.com/hurtki/configsManager/services"
 	gomock "go.uber.org/mock/gomock"
 )
-
 
 // === No args + stdin ===
 // test for valid config adding no args with pipe WIP
@@ -44,9 +44,9 @@ func TestAddCmd_ValidConfigAddNoParamWithPipe(t *testing.T) {
 	}
 }
 
-// test for not valid config adding no args and no STDIN 
+// test for not valid config adding no args and no STDIN
 
-func TestAddCmd_ValidConfigAddNoParamNoPipe(t *testing.T) {
+func TestAddCmd_NotValidConfigAddNoParamNoPipe(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	// creating mock dependencies
@@ -58,18 +58,80 @@ func TestAddCmd_ValidConfigAddNoParamNoPipe(t *testing.T) {
 	args := []string{}
 
 	mockInputService.EXPECT().GetPipedInput().Return("", false)
-	
+
 	addCmd := cmd.NewAddCmd(mockAppConfigService, mockInputService, mockConfigsListService, mockOsService)
-	
+
 	err := addCmd.Command.RunE(addCmd.Command, args)
 	if err.Error() != "not enough args" {
 		t.Errorf("excpected error: 'not enough args' while adding, got %s", err.Error())
 	}
-
 }
 
+// test for not valid config adding no args and not realistic path in STDIn
+func TestAddCmd_NotValidConfigAddNoParamPipeWithNotRealisticPath(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	// creating mock dependencies
+	mockAppConfigService := mocks.NewMockAppConfigService(ctrl)
+	mockConfigsListService := mocks.NewMockConfigsListService(ctrl)
+	mockInputService := mocks.NewMockInputService(ctrl)
+	mockOsService := mocks.NewMockOsService(ctrl)
 
+	args := []string{}
+	pipe := "/some_folder/some_config.json"
 
+	mockInputService.EXPECT().GetPipedInput().Return(pipe, true)
+	returnAppConfig := services.NewDefaultAppConfig()
+	returnConfigsList := services.GetDefaultConfigsList("")
+
+	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
+	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
+
+	mockOsService.EXPECT().FileExists(pipe).Return(false, nil)
+
+	ErrMkDir := errors.New("mkdir /testdir: read-only file system")
+
+	mockOsService.EXPECT().MakePathAndFile(pipe).Return(ErrMkDir)
+
+	addCmd := cmd.NewAddCmd(mockAppConfigService, mockInputService, mockConfigsListService, mockOsService)
+	err := addCmd.Command.RunE(addCmd.Command, args)
+	if err != ErrMkDir {
+		t.Errorf("excpected %s, got %d", ErrMkDir.Error(), err)
+	}
+}
+
+// === One arg + stdIn ===
+
+func TestAddCmd_ValidConfigAddOneParamWithPipe(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	// creating mock dependencies
+	mockAppConfigService := mocks.NewMockAppConfigService(ctrl)
+	mockConfigsListService := mocks.NewMockConfigsListService(ctrl)
+	mockInputService := mocks.NewMockInputService(ctrl)
+	mockOsService := mocks.NewMockOsService(ctrl)
+
+	args := []string{"config"}
+	pipe := "path/to/some_config.yaml"
+	mockInputService.EXPECT().GetPipedInput().Return(pipe, true)
+	
+	returnAppConfig := services.NewDefaultAppConfig()
+	returnConfigsList := services.GetDefaultConfigsList("")
+
+	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
+	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
+
+	mockOsService.EXPECT().FileExists(pipe).Return(true, nil)
+
+	mockOsService.EXPECT().GetAbsolutePath(pipe).Return(pipe, nil)
+
+	mockConfigsListService.EXPECT().Save(returnConfigsList).Return(nil)
+	addCmd := cmd.NewAddCmd(mockAppConfigService, mockInputService, mockConfigsListService, mockOsService)
+	err := addCmd.Command.RunE(addCmd.Command, args)
+	if err != nil {
+		t.Errorf("excpected no error while adding, got %d", err)
+	}
+}
+
+// === One arg + no stdIn ===
 
 // test for valid config adding one arg
 func TestAddCmd_ValidConfigAddOneParam(t *testing.T) {
@@ -129,4 +191,3 @@ func TestAddCmd_ValidConfigAddTwoParam(t *testing.T) {
 		t.Errorf("excpected no error while adding, got %d", err)
 	}
 }
-

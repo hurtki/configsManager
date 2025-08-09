@@ -11,12 +11,33 @@ type OsService interface {
 	OpenInEditor(editor, path string) error
 	FileExists(path string) (bool, error)
 	GetAbsolutePath(path string) (string, error)
+	MakePathAndFile(path string) error
 }
 
 type OsServiceImpl struct{}
 
 func NewOsServiceImpl() *OsServiceImpl {
 	return &OsServiceImpl{}
+}
+
+// MakePathAndFile creates all directories in the given path if they do not exist,
+// and then creates or truncates the file at the end of the path.
+// Returns an error if any operation fails.
+func (s *OsServiceImpl) MakePathAndFile(path string) error {
+	dir := filepath.Dir(path)
+	// creating all the folders
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	// create or
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return nil
 }
 
 func (s *OsServiceImpl) GetFileData(path string) ([]byte, error) {

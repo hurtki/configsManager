@@ -84,6 +84,20 @@ func (mr *MockOsServiceMockRecorder) GetFileData(path any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileData", reflect.TypeOf((*MockOsService)(nil).GetFileData), path)
 }
 
+// MakePathAndFile mocks base method.
+func (m *MockOsService) MakePathAndFile(path string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MakePathAndFile", path)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MakePathAndFile indicates an expected call of MakePathAndFile.
+func (mr *MockOsServiceMockRecorder) MakePathAndFile(path any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakePathAndFile", reflect.TypeOf((*MockOsService)(nil).MakePathAndFile), path)
+}
+
 // OpenInEditor mocks base method.
 func (m *MockOsService) OpenInEditor(editor, path string) error {
 	m.ctrl.T.Helper()
