@@ -99,6 +99,38 @@ func TestAddCmd_NotValidConfigAddNoParamPipeWithNotRealisticPath(t *testing.T) {
 	}
 }
 
+// === One arg + stdIn ===
+
+func TestAddCmd_ValidConfigAddOneParamWithPipe(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	// creating mock dependencies
+	mockAppConfigService := mocks.NewMockAppConfigService(ctrl)
+	mockConfigsListService := mocks.NewMockConfigsListService(ctrl)
+	mockInputService := mocks.NewMockInputService(ctrl)
+	mockOsService := mocks.NewMockOsService(ctrl)
+
+	args := []string{"config"}
+	pipe := "path/to/some_config.yaml"
+	mockInputService.EXPECT().GetPipedInput().Return(pipe, true)
+	
+	returnAppConfig := services.NewDefaultAppConfig()
+	returnConfigsList := services.GetDefaultConfigsList("")
+
+	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
+	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
+
+	mockOsService.EXPECT().FileExists(pipe).Return(true, nil)
+
+	mockOsService.EXPECT().GetAbsolutePath(pipe).Return(pipe, nil)
+
+	mockConfigsListService.EXPECT().Save(returnConfigsList).Return(nil)
+	addCmd := cmd.NewAddCmd(mockAppConfigService, mockInputService, mockConfigsListService, mockOsService)
+	err := addCmd.Command.RunE(addCmd.Command, args)
+	if err != nil {
+		t.Errorf("excpected no error while adding, got %d", err)
+	}
+}
+
 // === One arg + no stdIn ===
 
 // test for valid config adding one arg
