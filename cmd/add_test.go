@@ -112,7 +112,7 @@ func TestAddCmd_ValidConfigAddOneParamWithPipe(t *testing.T) {
 	args := []string{"config"}
 	pipe := "path/to/some_config.yaml"
 	mockInputService.EXPECT().GetPipedInput().Return(pipe, true)
-	
+
 	returnAppConfig := services.NewDefaultAppConfig()
 	returnConfigsList := services.GetDefaultConfigsList("")
 
