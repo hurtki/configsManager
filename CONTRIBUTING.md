@@ -43,7 +43,7 @@ gofmt -s -w .
 golangci-lint run
 ```
 
-> Note: All of the above checks are automatically run in CI, so the PR will fail if any tests, linter checks, or formatting issues are found.
+> Note: All of the above checks are automatically run in CI, so the PR will fail if any tests or formatting issues are found.
 
 Use this template for your PR description:
 
