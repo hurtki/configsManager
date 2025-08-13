@@ -55,6 +55,7 @@ func NewRootCmd(AppConfigService services.AppConfigService,
 	pathCmd := NewPathCmd(AppConfigService, ConfigsListService)
 	rmCmd := NewRmCmd(AppConfigService, ConfigsListService)
 	initCmd := NewInitCmd(AppConfigService, ConfigsListService)
+	syncCmd := NewSyncCmd(AppConfigService, ConfigsListService, OsService)
 
 	// adding commands to root command
 	rootCmd.AddCommand(
@@ -65,6 +66,7 @@ func NewRootCmd(AppConfigService services.AppConfigService,
 		pathCmd.Command,
 		rmCmd.Command,
 		initCmd.Command,
+		syncCmd.Command,
 	)
 
 	// no errors handling from cobra
