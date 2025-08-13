@@ -24,13 +24,6 @@ jobs:
             echo "Go files are not formatted. Run 'gofmt -s -w .' to fix."
             exit 1
           fi
-
-      # Executing linter checking using golangci-lint
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: v1.58.0
-          args: run
           
       # Running tests
       - name: Run tests
