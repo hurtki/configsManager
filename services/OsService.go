@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -35,7 +36,12 @@ func (s *OsServiceImpl) MakePathAndFile(path string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("Error closing file: %d\n", err)
+		}
+	}()
 
 	return nil
 }
