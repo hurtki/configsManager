@@ -66,11 +66,11 @@ cm init
   > **If tool sees that given path doesn't exist, it will automatically create it, and will notify you where it was created!**
   ---
   ### rm
-  Remove a config from list by key
+  Remove a config/s from list by key/s
   ```
-  cm rm [config key]
+  cm rm key1 key2 key3...
   ```
-  > **Returns nothing if operation was successful**
+  > **Returns nothing if operation was successful and if key didn't exist**
   ---
   ### cat
   Print the content of the config file for a given key
