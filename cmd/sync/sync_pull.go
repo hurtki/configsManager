@@ -22,14 +22,21 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 		if !(AllFlag && SpFlag) {
 			return ErrPullBothFlagsRequired
 		}
+		// здесь нужно будет получить от SyncService все конфиги тоесть []ConfigObj
+		// дальше раскинуть их по папками с паралельным сохранением пути в локальный ConfigsList
 	} else if len(args) == 1 {
 		if AllFlag {
 			return ErrPullAllFlagNotSupported
 		}
+		// здесь надо получить от SyncService один ConfigObj по ключу
+		// дальше мы закидываем его в папку где мы есть либо если --sp то где он должен быть
+		// добавляем в локальным ConfigsList
 	} else if len(args) == 2 {
 		if AllFlag || SpFlag {
 			return ErrPullAllAndSpFlagsNotSupported
 		}
+		// здесь надо получить от SyncService ConfigObj по ключу
+		// и четко положить его в папку куда сказал пользователь
 	} else {
 		return ErrPullMoreThanTwoArgumentsProvided
 	}

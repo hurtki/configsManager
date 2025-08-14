@@ -17,6 +17,10 @@ func (c *SyncLogoutCmd) run(cmd *cobra.Command, args []string) error {
 	dropboxFlag := c.Dropbox
 
 	fmt.Printf("Flag dropbox: %t\n", dropboxFlag)
+
+	// здесь нам нужно попросить SyncService удалить токены из памяти, или конкретно какого провайдера
+	// LogOut(string) error
+	// типо если строка пустая то их всех выходит
 	return nil
 }
 

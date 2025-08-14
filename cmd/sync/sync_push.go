@@ -17,6 +17,11 @@ func (c *SyncPushCmd) run(cmd *cobra.Command, args []string) error {
 	ForceFlag := c.Force
 
 	fmt.Printf("Flag force: %t\n", ForceFlag)
+
+	// здесь нужно думаю сгенерировать из ConfigsList ConfigObj-ты и передать их в SyncService
+	// вот так вот передать Push(configs []*ConfigObj) map[*ConfigObj]error
+	// еще можно туда как раз флаг --force передавать чтобы если были противоречия они либо возвращали соответствующую ошибку либо делали overwrite
+	// дальше нам вернули map[*ConfigObj]error и мы просто показываем всем ошибки, красиво выводим
 	return nil
 }
 
