@@ -17,12 +17,16 @@ func (c *SyncAuthCmd) run(cmd *cobra.Command, args []string) error {
 	dropboxFlag := c.Dropbox
 	token, _ := cmd.Flags().GetString("token")
 
-	if dropboxFlag && token != "token_not_given" {
-		return fmt.Errorf("connot use --dropbox and --token together")
+	if (!dropboxFlag) && token != "token_not_given" {
+		return ErrAuthTokeWithoutProvider
 	}
 
 	fmt.Printf("Flag dropbox: %t\n", dropboxFlag)
 	fmt.Printf("Flag token: %s\n", token)
+
+	// здесь обращаемся к SyncService с методом Auth(provider string, token string)
+	// там уже понимают если токен пустой то надо по факту авторизировать
+	// ну и собственно там и запоминают токен в память в связку ключей
 	return nil
 }
 
