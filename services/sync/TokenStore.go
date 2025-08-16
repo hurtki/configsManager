@@ -1,8 +1,6 @@
 package sync_services
 
 import (
-
-
 	"github.com/99designs/keyring"
 )
 
@@ -30,23 +28,22 @@ type TokenStoreImpl struct {
 }
 
 type TokenPair struct {
-	Access string
-	Refresh string
+	Access  string `json:"access_token"`
+	Refresh string `json:"refresh_token"`
 }
 
 func (s *TokenStoreImpl) SaveToken(providerName string, tokenPair TokenPair) error {
 
-
 	if providerName == "dropbox" {
 		if err := s.ring.Set(keyring.Item{
-		Key:  dropboxAccessTokenKeyName,
-		Data: []byte(tokenPair.Access),
+			Key:  dropboxAccessTokenKeyName,
+			Data: []byte(tokenPair.Access),
 		}); err != nil {
 			return err
 		}
 		if err := s.ring.Set(keyring.Item{
-		Key:  dropboxRefreshTokenKeyName,
-		Data: []byte(tokenPair.Refresh),
+			Key:  dropboxRefreshTokenKeyName,
+			Data: []byte(tokenPair.Refresh),
 		}); err != nil {
 			return err
 		}
@@ -59,7 +56,6 @@ func (s *TokenStoreImpl) SaveToken(providerName string, tokenPair TokenPair) err
 }
 
 func (s *TokenStoreImpl) LoadToken(providerName string) (*TokenPair, error) {
-	
 
 	if providerName == "dropbox" {
 		accessToken, err := s.ring.Get(dropboxAccessTokenKeyName)
@@ -77,7 +73,7 @@ func (s *TokenStoreImpl) LoadToken(providerName string) (*TokenPair, error) {
 			return nil, err
 		}
 		return &TokenPair{
-			Access: string(accessToken.Data),
+			Access:  string(accessToken.Data),
 			Refresh: string(refreshToken.Data),
 		}, nil
 	} else {
