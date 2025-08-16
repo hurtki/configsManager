@@ -3,5 +3,7 @@ package sync_services
 import "errors"
 
 var (
-	ErrFileDoesntExists = errors.New("file doesn't exists")
+	ErrFileDoesntExist         = errors.New("file doesn't exists")
+	ErrAuthProviderDoesntExist = errors.New("given provider doesn't exist")
+	ErrTokenNotFoundInSecrets  = errors.New("token not found in secrets, try cm sync auth")
 )
