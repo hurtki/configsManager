@@ -111,39 +111,38 @@ func (m *AuthManagerImpl) refreshDropbox() error {
 		return err
 	}
 	reqBody := url.Values{}
-    reqBody.Set("grant_type", "refresh_token")
-    reqBody.Set("refresh_token", tokenPair.Refresh)
-    reqBody.Set("client_id", dropboxAppKey)
-    
+	reqBody.Set("grant_type", "refresh_token")
+	reqBody.Set("refresh_token", tokenPair.Refresh)
+	reqBody.Set("client_id", dropboxAppKey)
 
-    req, err := http.NewRequest("POST", "https://api.dropboxapi.com/oauth2/token", strings.NewReader(reqBody.Encode()))
-    if err != nil {
-        return err
-    }
-    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req, err := http.NewRequest("POST", "https://api.dropboxapi.com/oauth2/token", strings.NewReader(reqBody.Encode()))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-    client := &http.Client{Timeout: 10 * time.Second}
-    resp, err := client.Do(req)
-    if err != nil {
-        return err
-    }
-    defer resp.Body.Close()
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-    data, err := io.ReadAll(resp.Body)
-    if err != nil {
-        return err
-    }
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 
-    // parsing only access_token field
-    var respJson struct {
-        Access string `json:"access_token"`
-    }
-    if err := json.Unmarshal(data, &respJson); err != nil {
-        return err
-    }
+	// parsing only access_token field
+	var respJson struct {
+		Access string `json:"access_token"`
+	}
+	if err := json.Unmarshal(data, &respJson); err != nil {
+		return err
+	}
 
-    tokenPair.Access = respJson.Access // updating only access field in tokenPair
-    return m.TokenStore.SaveToken("dropbox", *tokenPair)
+	tokenPair.Access = respJson.Access // updating only access field in tokenPair
+	return m.TokenStore.SaveToken("dropbox", *tokenPair)
 }
 
 func (m *AuthManagerImpl) getTokenDropbox() (string, error) {
