@@ -1,7 +1,5 @@
 package sync_services
 
-var cloudManagerFileName = "cloud_manger.json"
-
 type SyncService interface {
 	// Authorization
 	Auth(provider string, token string) error
@@ -17,4 +15,17 @@ type SyncService interface {
 
 type SyncServiceImpl struct {
 	CloudManager CloudManager
+	AuthManager  AuthManager
+}
+
+func NewSyncServiceImpl() (*SyncServiceImpl, error) {
+	authManager := NewAuthManagerImpl()
+	authToken, err := authManager.GetToken("dropbox")
+	if err != nil {
+		return nil, err
+	}
+	return &SyncServiceImpl{
+		AuthManager:  authManager,
+		CloudManager: NewCloudManagerImpl(authToken),
+	}, nil
 }

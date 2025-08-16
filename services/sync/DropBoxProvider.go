@@ -21,7 +21,6 @@ type Provider interface {
 	Download(string) ([]byte, error)
 }
 
-// NewDropboxProvider — конструктор
 func NewDropboxProvider(token string) *DropboxProvider {
 	config := dropbox.Config{
 		Token:    token,
@@ -59,7 +58,7 @@ func (d *DropboxProvider) Download(path string) ([]byte, error) {
 		// cheking the error on not_found Tag
 		if e, ok := parsedErr.(files.DownloadAPIError); ok {
 			if e.EndpointError != nil && e.EndpointError.Path != nil && e.EndpointError.Path.Tag == "not_found" {
-				return nil, ErrFileDoesntExists
+				return nil, ErrFileDoesntExist
 			}
 		}
 
