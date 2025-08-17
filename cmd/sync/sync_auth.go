@@ -23,7 +23,7 @@ func (c *SyncAuthCmd) run(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Flag dropbox: %t\n", dropboxFlag)
 	fmt.Printf("Flag token: %s\n", token)
-	if dropboxFlag && (token == "token_not_given"){
+	if dropboxFlag && (token == "token_not_given") {
 		if err := c.SyncDeps.SyncService.Auth("dropbox", ""); err != nil {
 			return err
 		}
@@ -32,7 +32,6 @@ func (c *SyncAuthCmd) run(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	
 
 	// здесь обращаемся к SyncService с методом Auth(provider string, token string)
 	// там уже понимают если токен пустой то надо по факту авторизировать
