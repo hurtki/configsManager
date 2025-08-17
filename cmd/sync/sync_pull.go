@@ -19,8 +19,15 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 	SpFlag := c.SamePlace
 
 	if len(args) == 0 {
-		if !(AllFlag && SpFlag) {
+		if !AllFlag || !SpFlag {
 			return ErrPullBothFlagsRequired
+		}
+		for _, res := range c.SyncDeps.SyncService.PullAll() {
+			errText := "no error"
+			if res.Error != nil {
+				errText = res.Error.Error()
+			}
+			fmt.Printf("for %s, error: %s", res.ConfigObj.ConfigKeyName, errText)
 		}
 		// здесь нужно будет получить от SyncService все конфиги тоесть []ConfigObj
 		// дальше раскинуть их по папками с паралельным сохранением пути в локальный ConfigsList

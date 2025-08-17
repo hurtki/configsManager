@@ -35,7 +35,6 @@ type AuthManagerImpl struct {
 
 func (m *AuthManagerImpl) randomString(length int) string {
 	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	rand.Seed(time.Now().UnixNano())
 
 	s := make([]rune, length)
 	for i := range s {
@@ -100,9 +99,7 @@ func (m *AuthManagerImpl) authenticateDropbox() error {
 		return err
 	}
 
-	m.TokenStore.SaveToken("dropbox", tokenPair)
-
-	return nil
+	return m.TokenStore.SaveToken("dropbox", tokenPair)
 }
 
 func (m *AuthManagerImpl) refreshDropbox() error {
@@ -126,8 +123,11 @@ func (m *AuthManagerImpl) refreshDropbox() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Println("error closing response")
+		}
+	}()
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
@@ -183,8 +183,8 @@ func (m *AuthManagerImpl) RemoveAllTokens() error {
 	return m.TokenStore.DeleteToken("dropbox")
 }
 
-func NewAuthManagerImpl() AuthManager {
+func NewAuthManagerImpl(TokenStore TokenStore) AuthManager {
 	return &AuthManagerImpl{
-		TokenStore: NewTokenStoreImpl(),
+		TokenStore: TokenStore,
 	}
 }

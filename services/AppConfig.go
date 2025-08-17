@@ -12,7 +12,6 @@ type AppConfig struct {
 }
 
 // default pointers for default config
-func ptrBool(b bool) *bool       { return &b }
 func ptrString(s string) *string { return &s }
 
 // default config

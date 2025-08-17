@@ -64,8 +64,11 @@ func (d *DropboxProvider) Download(path string) ([]byte, error) {
 
 		return nil, parsedErr
 	}
-	defer contents.Close()
-
+	defer func() {
+		if err := contents.Close(); err != nil {
+			fmt.Println("error closing content")
+		}
+	}()
 	data, err := io.ReadAll(contents)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read downloaded file: %w", err)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hurtki/configsManager/cmd"
 	"github.com/hurtki/configsManager/services"
+	syncServices "github.com/hurtki/configsManager/services/sync"
 )
 
 func main() {
@@ -18,8 +19,11 @@ func main() {
 	StdInputService := services.NewStdInputService()
 	ConfigsListService := services.NewConfigsListServiceImpl()
 	OsService := services.NewOsServiceImpl()
+	TokenStore := syncServices.NewTokenStoreImpl()
+	AuthManager := syncServices.NewAuthManagerImpl(TokenStore)
+	SyncService := syncServices.NewSyncServiceImpl(AuthManager)
 
-	rootCmd := cmd.NewRootCmd(AppConfigService, StdInputService, ConfigsListService, OsService)
+	rootCmd := cmd.NewRootCmd(AppConfigService, StdInputService, ConfigsListService, OsService, SyncService)
 
 	if err := rootCmd.Execute(); err != nil {
 		if errors.Is(err, cmd.ErrUserAborted) {

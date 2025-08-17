@@ -82,16 +82,17 @@ func (s *TokenStoreImpl) LoadToken(providerName string) (*TokenPair, error) {
 }
 
 func (s *TokenStoreImpl) DeleteToken(providerName string) error {
-	if providerName == "dropbox" {
+	switch providerName {
+	case "dropbox":
 		return s.ring.Remove(dropboxAccessTokenKeyName)
-	} else if providerName == "" {
+	case "":
 		for _, key := range allKeys {
 			err := s.ring.Remove(key)
 			if err != nil {
 				return err
 			}
 		}
-	} else {
+	default:
 		return ErrAuthProviderDoesntExist
 	}
 	return nil

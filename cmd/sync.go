@@ -14,6 +14,7 @@ type SyncCmd struct {
 func NewSyncCmd(AppConfigService services.AppConfigService,
 	ConfigsListService services.ConfigsListService,
 	OsService services.OsService,
+	SyncService syncServices.SyncService,
 ) *SyncCmd {
 	syncCmd := SyncCmd{}
 
@@ -27,6 +28,7 @@ func NewSyncCmd(AppConfigService services.AppConfigService,
 		AppConfigService:   AppConfigService,
 		ConfigsListService: ConfigsListService,
 		OsService:          OsService,
+		SyncService:        SyncService,
 	}
 
 	cmd.AddCommand(sync_cmd.NewSyncAuthCmd(&SyncDeps).Command)

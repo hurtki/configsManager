@@ -7,4 +7,5 @@ type Deps struct {
 	AppConfigService   services.AppConfigService
 	ConfigsListService services.ConfigsListService
 	OsService          services.OsService
+	SyncService        SyncService
 }
