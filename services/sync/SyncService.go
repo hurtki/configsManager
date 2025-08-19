@@ -30,16 +30,7 @@ type SyncResult struct {
 
 func (s *SyncServiceImpl) Auth(provider, token string) error {
 	if token == "" {
-		err := s.AuthManager.Authenticate(provider)
-		if err != nil {
-			return err
-		}
-		token, err = s.AuthManager.GetToken(provider)
-		if err != nil {
-			return err
-		}
-		s.CloudManager = NewCloudManagerImpl(token)
-		return nil
+		return s.AuthManager.Authenticate(provider)
 	} else {
 		return fmt.Errorf("token authorisation not supported")
 	}
@@ -58,11 +49,12 @@ func (s *SyncServiceImpl) PullOne(key string) SyncResult {
 }
 
 func (s *SyncServiceImpl) PullAll() []SyncResult {
-	keys, err := s.CloudManager.GetAllKeys()
+	configRegistry, err := s.CloudManager.GetCloudInfo()
 	if err != nil {
 		return nil
 	}
-	results := make([]SyncResult, len(keys))
+	keys := configRegistry.GetAllKeys()
+	results := []SyncResult{}
 	resChan := make(chan SyncResult)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(keys))
@@ -78,13 +70,16 @@ func (s *SyncServiceImpl) PullAll() []SyncResult {
 		close(resChan)
 	}()
 	for res := range resChan {
+
 		results = append(results, res)
 	}
 	return results
 }
 
 func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) []SyncResult {
-	results := make([]SyncResult, len(configs))
+	// WIP, need to check checksums and updating checksums not one by one
+
+	results := []SyncResult{}
 	resChan := make(chan SyncResult)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(configs))
@@ -110,9 +105,17 @@ func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) []SyncResult {
 	return results
 }
 
-func NewSyncServiceImpl(AuthManager AuthManager) *SyncServiceImpl {
+func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
+	token, err := authManager.GetToken("dropbox")
+	var cloud CloudManager
+	if err != nil {
+		cloud = NoopCloudManager{}
+	} else {
+		cloud = NewCloudManagerImpl(token)
+	}
+
 	return &SyncServiceImpl{
-		AuthManager:  AuthManager,
-		CloudManager: NoopCloudManager{},
+		AuthManager:  authManager,
+		CloudManager: cloud,
 	}
 }

@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/hurtki/configsManager/cmd/sync"
 	"github.com/hurtki/configsManager/services"
-	syncServices "github.com/hurtki/configsManager/services/sync"
+	"github.com/hurtki/configsManager/services/sync"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +14,7 @@ type SyncCmd struct {
 func NewSyncCmd(AppConfigService services.AppConfigService,
 	ConfigsListService services.ConfigsListService,
 	OsService services.OsService,
-	SyncService syncServices.SyncService,
+	SyncService sync_services.SyncService,
 ) *SyncCmd {
 	syncCmd := SyncCmd{}
 
@@ -24,17 +24,10 @@ func NewSyncCmd(AppConfigService services.AppConfigService,
 		Long:  ``,
 	}
 
-	SyncDeps := syncServices.Deps{
-		AppConfigService:   AppConfigService,
-		ConfigsListService: ConfigsListService,
-		OsService:          OsService,
-		SyncService:        SyncService,
-	}
-
-	cmd.AddCommand(sync_cmd.NewSyncAuthCmd(&SyncDeps).Command)
-	cmd.AddCommand(sync_cmd.NewSyncLogoutCmd(&SyncDeps).Command)
-	cmd.AddCommand(sync_cmd.NewSyncPushCmd(&SyncDeps).Command)
-	cmd.AddCommand(sync_cmd.NewSyncPullCmd(&SyncDeps).Command)
+	cmd.AddCommand(sync_cmd.NewSyncAuthCmd(SyncService).Command)
+	cmd.AddCommand(sync_cmd.NewSyncLogoutCmd(SyncService).Command)
+	cmd.AddCommand(sync_cmd.NewSyncPushCmd(SyncService, ConfigsListService, OsService).Command)
+	cmd.AddCommand(sync_cmd.NewSyncPullCmd(SyncService).Command)
 	syncCmd.Command = cmd
 
 	return &syncCmd

@@ -7,7 +7,7 @@ import (
 var (
 	keyringServiceName         = "configsManager"
 	dropboxAccessTokenKeyName  = "cm_dropbox_access_token"
-	dropboxRefreshTokenKeyName = "cm_dropbox_access_token"
+	dropboxRefreshTokenKeyName = "cm_dropbox_refresh_token"
 )
 
 var (
@@ -84,18 +84,23 @@ func (s *TokenStoreImpl) LoadToken(providerName string) (*TokenPair, error) {
 func (s *TokenStoreImpl) DeleteToken(providerName string) error {
 	switch providerName {
 	case "dropbox":
-		return s.ring.Remove(dropboxAccessTokenKeyName)
-	case "":
-		for _, key := range allKeys {
-			err := s.ring.Remove(key)
-			if err != nil {
+		for _, key := range []string{dropboxAccessTokenKeyName, dropboxRefreshTokenKeyName} {
+			if err := s.ring.Remove(key); err != nil && err != keyring.ErrKeyNotFound {
 				return err
 			}
 		}
+		return nil
+	case "":
+		for _, key := range allKeys {
+			if err := s.ring.Remove(key); err != nil && err != keyring.ErrKeyNotFound {
+				return err
+			}
+		}
+		return nil
 	default:
 		return ErrAuthProviderDoesntExist
 	}
-	return nil
+
 }
 
 func NewTokenStoreImpl() *TokenStoreImpl {

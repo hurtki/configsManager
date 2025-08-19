@@ -45,11 +45,11 @@ func (s *OsServiceImpl) MakePathAndFile(path string) error {
 }
 
 func (s *OsServiceImpl) GetFileData(path string) ([]byte, error) {
-	text, err := os.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	return text, nil
+	return data, nil
 }
 
 func (s *OsServiceImpl) OpenInEditor(editor, path string) error {

@@ -2,21 +2,53 @@ package sync_cmd
 
 import (
 	"fmt"
+	"path/filepath"
 
-	sync_services "github.com/hurtki/configsManager/services/sync"
+	"github.com/hurtki/configsManager/services"
+	"github.com/hurtki/configsManager/services/sync"
 	"github.com/spf13/cobra"
 )
 
 type SyncPushCmd struct {
-	SyncDeps *sync_services.Deps
-	Command  *cobra.Command
-	Force    bool
+	syncService       sync_services.SyncService
+	configListService services.ConfigsListService
+	osService         services.OsService
+	Command           *cobra.Command
+	Force             bool
 }
 
 func (c *SyncPushCmd) run(cmd *cobra.Command, args []string) error {
 	ForceFlag := c.Force
 
 	fmt.Printf("Flag force: %t\n", ForceFlag)
+
+	configList, err := c.configListService.Load()
+	if err != nil {
+		return err
+	}
+	configObjs := []*sync_services.ConfigObj{}
+	for _, key := range configList.GetAllKeys() {
+		cfgObj := sync_services.ConfigObj{}
+		cfgObj.KeyName = key
+		cfgObj.DeterminedPath, _ = configList.GetPath(key)
+		cfgObj.FileName = filepath.Base(cfgObj.DeterminedPath)
+		data, err := c.osService.GetFileData(cfgObj.DeterminedPath)
+
+		if err != nil {
+			return err
+		}
+		cfgObj.Content = data
+		configObjs = append(configObjs, &cfgObj)
+	}
+
+	results := c.syncService.Push(configObjs, true)
+	for _, res := range results {
+		if res.Error != nil {
+			fmt.Printf("error pushing cfg: , error: %s\n", res.Error.Error())
+		} else {
+			fmt.Printf("pushed cfg: %s successfully\n", res.ConfigObj.KeyName)
+		}
+	}
 
 	// здесь нужно думаю сгенерировать из ConfigsList ConfigObj-ты и передать их в SyncService
 	// вот так вот передать Push(configs []*ConfigObj) map[*ConfigObj]error
@@ -25,9 +57,14 @@ func (c *SyncPushCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewSyncPushCmd(d *sync_services.Deps) *SyncPushCmd {
+func NewSyncPushCmd(syncService sync_services.SyncService,
+	configListService services.ConfigsListService,
+	osService services.OsService,
+) *SyncPushCmd {
 	syncPushCmd := SyncPushCmd{
-		SyncDeps: d,
+		syncService:       syncService,
+		configListService: configListService,
+		osService:         osService,
 	}
 
 	cmd := &cobra.Command{

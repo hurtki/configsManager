@@ -8,10 +8,10 @@ import (
 )
 
 type SyncPullCmd struct {
-	SyncDeps  *sync_services.Deps
-	Command   *cobra.Command
-	All       bool
-	SamePlace bool
+	syncService sync_services.SyncService
+	Command     *cobra.Command
+	All         bool
+	SamePlace   bool
 }
 
 func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
@@ -22,12 +22,21 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 		if !AllFlag || !SpFlag {
 			return ErrPullBothFlagsRequired
 		}
-		for _, res := range c.SyncDeps.SyncService.PullAll() {
-			errText := "no error"
+
+		for i, res := range c.syncService.PullAll() {
+
 			if res.Error != nil {
-				errText = res.Error.Error()
+				if res.ConfigObj.KeyName == "" {
+					fmt.Printf("error for index: %s, error: %d\n", fmt.Sprint(i), res.Error)
+				}
+				fmt.Printf("for cfg %s, error: %d\n", res.ConfigObj.KeyName, res.Error)
+			} else {
+				fmt.Printf("No error for cfg: %s\n", res.ConfigObj.KeyName)
+				fmt.Println("=== Config text ===")
+				fmt.Println(string(res.ConfigObj.Content))
+				fmt.Println("======")
 			}
-			fmt.Printf("for %s, error: %s", res.ConfigObj.ConfigKeyName, errText)
+
 		}
 		// здесь нужно будет получить от SyncService все конфиги тоесть []ConfigObj
 		// дальше раскинуть их по папками с паралельным сохранением пути в локальный ConfigsList
@@ -50,18 +59,15 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 
 	fmt.Printf("Flag all: %t\n", AllFlag)
 	fmt.Printf("Flag sp: %t\n", SpFlag)
-	fmt.Println(args)
 	return nil
 }
 
-func NewSyncPullCmd(d *sync_services.Deps) *SyncPullCmd {
-	syncPullCmd := SyncPullCmd{
-		SyncDeps: d,
-	}
+func NewSyncPullCmd(syncService sync_services.SyncService) *SyncPullCmd {
+	syncPullCmd := &SyncPullCmd{syncService: syncService}
 
 	cmd := &cobra.Command{
 		Use:   "pull",
-		Short: "Pulls cofnigs from your cloud",
+		Short: "Pulls configs from your cloud",
 		Long:  ``,
 		RunE:  syncPullCmd.run,
 	}
@@ -71,5 +77,5 @@ func NewSyncPullCmd(d *sync_services.Deps) *SyncPullCmd {
 
 	syncPullCmd.Command = cmd
 
-	return &syncPullCmd
+	return syncPullCmd
 }
