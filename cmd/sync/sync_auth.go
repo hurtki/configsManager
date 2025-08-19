@@ -8,9 +8,9 @@ import (
 )
 
 type SyncAuthCmd struct {
-	SyncDeps *sync_services.Deps
-	Command  *cobra.Command
-	Dropbox  bool
+	syncService sync_services.SyncService
+	Command     *cobra.Command
+	Dropbox     bool
 }
 
 func (c *SyncAuthCmd) run(cmd *cobra.Command, args []string) error {
@@ -24,11 +24,11 @@ func (c *SyncAuthCmd) run(cmd *cobra.Command, args []string) error {
 	fmt.Printf("Flag dropbox: %t\n", dropboxFlag)
 	fmt.Printf("Flag token: %s\n", token)
 	if dropboxFlag && (token == "token_not_given") {
-		if err := c.SyncDeps.SyncService.Auth("dropbox", ""); err != nil {
+		if err := c.syncService.Auth("dropbox", ""); err != nil {
 			return err
 		}
 	} else if dropboxFlag && (token != "token_not_given") {
-		if err := c.SyncDeps.SyncService.Auth("dropbox", token); err != nil {
+		if err := c.syncService.Auth("dropbox", token); err != nil {
 			return err
 		}
 	}
@@ -39,9 +39,9 @@ func (c *SyncAuthCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewSyncAuthCmd(d *sync_services.Deps) *SyncAuthCmd {
+func NewSyncAuthCmd(syncService sync_services.SyncService) *SyncAuthCmd {
 	syncAuthCmd := SyncAuthCmd{
-		SyncDeps: d,
+		syncService: syncService,
 	}
 
 	cmd := &cobra.Command{

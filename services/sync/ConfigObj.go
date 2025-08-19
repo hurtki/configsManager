@@ -6,7 +6,7 @@ import (
 )
 
 type ConfigObj struct {
-	ConfigKeyName  string
+	KeyName        string
 	FileName       string // with extension
 	Content        []byte
 	DeterminedPath string
@@ -19,7 +19,7 @@ func NewConfigObj(file io.Reader, path, key string) (*ConfigObj, error) {
 	}
 
 	return &ConfigObj{
-		ConfigKeyName:  key,
+		KeyName:        key,
 		FileName:       filepath.Base(path),
 		Content:        content,
 		DeterminedPath: filepath.Dir(path),

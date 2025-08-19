@@ -8,9 +8,9 @@ import (
 )
 
 type SyncLogoutCmd struct {
-	SyncDeps *sync_services.Deps
-	Command  *cobra.Command
-	Dropbox  bool
+	syncService sync_services.SyncService
+	Command     *cobra.Command
+	Dropbox     bool
 }
 
 func (c *SyncLogoutCmd) run(cmd *cobra.Command, args []string) error {
@@ -24,9 +24,9 @@ func (c *SyncLogoutCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewSyncLogoutCmd(d *sync_services.Deps) *SyncLogoutCmd {
+func NewSyncLogoutCmd(syncService sync_services.SyncService) *SyncLogoutCmd {
 	syncLogoutCmd := SyncLogoutCmd{
-		SyncDeps: d,
+		syncService: syncService,
 	}
 
 	cmd := &cobra.Command{
