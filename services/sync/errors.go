@@ -10,4 +10,5 @@ var (
 	ErrFileChanged             = errors.New("file already exists and has changed")
 	ErrNotAuthenticated        = errors.New("no token in storage")
 	ErrNothingToPush           = errors.New("all configs are synced, nothing to push")
+	ErrUnauthorizedRequest     = errors.New("not valid access token in request to dropbox api using sdk")
 )

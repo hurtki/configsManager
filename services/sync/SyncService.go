@@ -78,6 +78,15 @@ func (s *SyncServiceImpl) PullAll() ([]SyncResult, error) {
 }
 func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult, error) {
 	cloudConfigRegistry, err := s.CloudManager.GetCloudInfo()
+	if err == ErrUnauthorizedRequest {
+		// try for refresing token
+		if refreshErr := s.AuthManager.RefreshToken("dropbox"); refreshErr != nil {
+			return nil, refreshErr
+		}
+		// additioinal request
+		cloudConfigRegistry, err = s.CloudManager.GetCloudInfo()
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -126,13 +135,10 @@ func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult,
 
 func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
 	token, err := authManager.GetToken("dropbox")
-	var cloud CloudManager
-	if err != nil {
-		cloud = NoopCloudManager{}
-	} else {
+	var cloud CloudManager = NoopCloudManager{}
+	if err == nil {
 		cloud = NewCloudManagerImpl(token)
 	}
-
 	return &SyncServiceImpl{
 		AuthManager:  authManager,
 		CloudManager: cloud,

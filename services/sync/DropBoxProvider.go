@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/auth"
@@ -41,6 +42,9 @@ func (d *DropboxProvider) Upload(path string, file []byte) error {
 
 	_, err := d.Client.Upload(uploadArg, bytes.NewReader(file))
 	if err != nil {
+		if strings.Contains(err.Error(), "token expired") {
+			return ErrUnauthorizedRequest
+		}
 		return err
 	}
 	return nil
@@ -51,6 +55,11 @@ func (d *DropboxProvider) Download(path string) ([]byte, error) {
 	path = filepath.Join("/", path)
 	_, contents, err := d.Client.Download(files.NewDownloadArg(path))
 	if err != nil {
+
+		if strings.Contains(err.Error(), "token expired") {
+			return nil, ErrUnauthorizedRequest
+		}
+
 		// Parsing error using auth.ParseError to handle not_found response
 		var appErr files.DownloadAPIError
 		parsedErr := auth.ParseError(err, &appErr)
