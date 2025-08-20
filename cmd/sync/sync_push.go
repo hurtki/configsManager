@@ -14,13 +14,11 @@ type SyncPushCmd struct {
 	configListService services.ConfigsListService
 	osService         services.OsService
 	Command           *cobra.Command
-	Force             bool
+	// not realised feature
+	// Force             bool
 }
 
 func (c *SyncPushCmd) run(cmd *cobra.Command, args []string) error {
-	ForceFlag := c.Force
-
-	fmt.Printf("Flag force: %t\n", ForceFlag)
 
 	configList, err := c.configListService.Load()
 	if err != nil {
@@ -41,19 +39,21 @@ func (c *SyncPushCmd) run(cmd *cobra.Command, args []string) error {
 		configObjs = append(configObjs, &cfgObj)
 	}
 
-	results := c.syncService.Push(configObjs, true)
+	results, err := c.syncService.Push(configObjs, true)
+	if err != nil {
+		return err
+	}
 	for _, res := range results {
 		if res.Error != nil {
-			fmt.Printf("error pushing cfg: , error: %s\n", res.Error.Error())
+			fmt.Printf("error pushing %s, error: %s\n", res.ConfigObj.KeyName, res.Error.Error())
 		} else {
-			fmt.Printf("pushed cfg: %s successfully\n", res.ConfigObj.KeyName)
+			fmt.Printf("pushed %s successfully\n", res.ConfigObj.KeyName)
 		}
 	}
+	if len(results) == 0 {
+		fmt.Println("pushed changes successfully")
+	}
 
-	// здесь нужно думаю сгенерировать из ConfigsList ConfigObj-ты и передать их в SyncService
-	// вот так вот передать Push(configs []*ConfigObj) map[*ConfigObj]error
-	// еще можно туда как раз флаг --force передавать чтобы если были противоречия они либо возвращали соответствующую ошибку либо делали overwrite
-	// дальше нам вернули map[*ConfigObj]error и мы просто показываем всем ошибки, красиво выводим
 	return nil
 }
 
@@ -74,7 +74,8 @@ func NewSyncPushCmd(syncService sync_services.SyncService,
 		RunE:  syncPushCmd.run,
 	}
 
-	cmd.Flags().BoolVar(&syncPushCmd.Force, "force", false, "Ignore inappropriate configs while pushing")
+	// not realised feature
+	//cmd.Flags().BoolVar(&syncPushCmd.Force, "force", false, "Ignore inappropriate configs while pushing")
 
 	syncPushCmd.Command = cmd
 

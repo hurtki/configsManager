@@ -2,68 +2,99 @@ package sync_cmd
 
 import (
 	"fmt"
+	"path/filepath"
 
-	sync_services "github.com/hurtki/configsManager/services/sync"
+	"github.com/hurtki/configsManager/services"
+	"github.com/hurtki/configsManager/services/sync"
 	"github.com/spf13/cobra"
 )
 
 type SyncPullCmd struct {
 	syncService sync_services.SyncService
+	osService   services.OsService
 	Command     *cobra.Command
 	All         bool
 	SamePlace   bool
 }
 
 func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
-	AllFlag := c.All
-	SpFlag := c.SamePlace
 
 	if len(args) == 0 {
-		if !AllFlag || !SpFlag {
+		if !c.All || !c.SamePlace {
 			return ErrPullBothFlagsRequired
 		}
+		res, err := c.syncService.PullAll()
+		if err != nil {
+			return err
+		}
 
-		for i, res := range c.syncService.PullAll() {
-
+		for i, res := range res {
 			if res.Error != nil {
 				if res.ConfigObj.KeyName == "" {
 					fmt.Printf("error for index: %s, error: %d\n", fmt.Sprint(i), res.Error)
 				}
-				fmt.Printf("for cfg %s, error: %d\n", res.ConfigObj.KeyName, res.Error)
+				fmt.Printf("for '%s', error: %d\n", res.ConfigObj.KeyName, res.Error)
 			} else {
-				fmt.Printf("No error for cfg: %s\n", res.ConfigObj.KeyName)
-				fmt.Println("=== Config text ===")
-				fmt.Println(string(res.ConfigObj.Content))
-				fmt.Println("======")
+				if err := c.osService.MakePathAndFile(res.ConfigObj.DeterminedPath); err != nil {
+					return err
+				}
+				if err := c.osService.WriteFile(res.ConfigObj.DeterminedPath, res.ConfigObj.Content); err != nil {
+					return err
+				}
+				fmt.Printf("pulled config to: %s\n", res.ConfigObj.DeterminedPath)
 			}
-
 		}
-		// здесь нужно будет получить от SyncService все конфиги тоесть []ConfigObj
-		// дальше раскинуть их по папками с паралельным сохранением пути в локальный ConfigsList
+
 	} else if len(args) == 1 {
-		if AllFlag {
+		if c.All {
 			return ErrPullAllFlagNotSupported
 		}
+		res := c.syncService.PullOne(args[0])
+		if res.Error != nil {
+			return res.Error
+		}
+		if c.SamePlace {
+			if err := c.osService.MakePathAndFile(res.ConfigObj.DeterminedPath); err != nil {
+				return err
+			}
+			if err := c.osService.WriteFile(res.ConfigObj.DeterminedPath, res.ConfigObj.Content); err != nil {
+				return err
+			}
+			fmt.Printf("pulled config to: %s\n", res.ConfigObj.DeterminedPath)
+		} else {
+			if err := c.osService.WriteFile(res.ConfigObj.FileName, res.ConfigObj.Content); err != nil {
+				return err
+			}
+			fmt.Printf("pulled config: %s to executing folder\n", res.ConfigObj.FileName)
+		}
+
 		// здесь надо получить от SyncService один ConfigObj по ключу
 		// дальше мы закидываем его в папку где мы есть либо если --sp то где он должен быть
 		// добавляем в локальным ConfigsList
 	} else if len(args) == 2 {
-		if AllFlag || SpFlag {
+		if c.SamePlace || c.All {
 			return ErrPullAllAndSpFlagsNotSupported
 		}
-		// здесь надо получить от SyncService ConfigObj по ключу
-		// и четко положить его в папку куда сказал пользователь
+		res := c.syncService.PullOne(args[0])
+		if res.Error != nil {
+			return res.Error
+		}
+		path := filepath.Join(args[1], res.ConfigObj.FileName)
+		if err := c.osService.MakePathAndFile(path); err != nil {
+			return err
+		}
+		if err := c.osService.WriteFile(path, res.ConfigObj.Content); err != nil {
+			return err
+		}
+		fmt.Printf("pulled config to: %s\n", res.ConfigObj.DeterminedPath)
 	} else {
 		return ErrPullMoreThanTwoArgumentsProvided
 	}
-
-	fmt.Printf("Flag all: %t\n", AllFlag)
-	fmt.Printf("Flag sp: %t\n", SpFlag)
 	return nil
 }
 
-func NewSyncPullCmd(syncService sync_services.SyncService) *SyncPullCmd {
-	syncPullCmd := &SyncPullCmd{syncService: syncService}
+func NewSyncPullCmd(syncService sync_services.SyncService, osService services.OsService) *SyncPullCmd {
+	syncPullCmd := &SyncPullCmd{syncService: syncService, osService: osService}
 
 	cmd := &cobra.Command{
 		Use:   "pull",

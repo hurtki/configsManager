@@ -1,6 +1,7 @@
 package sync_services
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"sync"
 )
@@ -11,11 +12,11 @@ type SyncService interface {
 	Logout(provider string) error // blank provider param => logout for everyone
 
 	// Pulling
-	PullAll() []SyncResult
+	PullAll() ([]SyncResult, error)
 	PullOne(key string) SyncResult
 
 	// Pushing
-	Push(configs []*ConfigObj, force bool) []SyncResult
+	Push(configs []*ConfigObj, force bool) ([]*SyncResult, error)
 }
 
 type SyncServiceImpl struct {
@@ -48,10 +49,10 @@ func (s *SyncServiceImpl) PullOne(key string) SyncResult {
 	return SyncResult{ConfigObj: cfgObj, Error: err}
 }
 
-func (s *SyncServiceImpl) PullAll() []SyncResult {
+func (s *SyncServiceImpl) PullAll() ([]SyncResult, error) {
 	configRegistry, err := s.CloudManager.GetCloudInfo()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	keys := configRegistry.GetAllKeys()
 	results := []SyncResult{}
@@ -73,36 +74,54 @@ func (s *SyncServiceImpl) PullAll() []SyncResult {
 
 		results = append(results, res)
 	}
-	return results
+	return results, nil
 }
+func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult, error) {
+	cloudConfigRegistry, err := s.CloudManager.GetCloudInfo()
+	if err != nil {
+		return nil, err
+	}
 
-func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) []SyncResult {
-	// WIP, need to check checksums and updating checksums not one by one
+	filteredConfigs := []*ConfigObj{}
 
-	results := []SyncResult{}
-	resChan := make(chan SyncResult)
-	wg := &sync.WaitGroup{}
-	wg.Add(len(configs))
-
+	localKeys := make(map[string]struct{})
 	for _, cfg := range configs {
-		go func(cfg *ConfigObj) {
-			defer wg.Done()
-			err := s.CloudManager.UpdateConfig(*cfg)
-			resChan <- SyncResult{
-				ConfigObj: cfg,
-				Error:     err,
-			}
-		}(cfg)
+		localKeys[cfg.KeyName] = struct{}{}
 	}
-	go func() {
-		wg.Wait()
-		close(resChan)
-	}()
 
-	for res := range resChan {
-		results = append(results, res)
+	// Updating cloud registry to make sure that there is no extra configs there
+	var cloudRegistryChanged bool
+	for key := range cloudConfigRegistry.Configs {
+		if _, exists := localKeys[key]; !exists {
+			cloudConfigRegistry.RemoveKey(key)
+			cloudRegistryChanged = true
+		}
 	}
-	return results
+
+	// Ccheking what configs from local are new or changed, and adding them to filtered
+	for _, cfg := range configs {
+		if cloudChecksum, ok := cloudConfigRegistry.Configs[cfg.KeyName]; ok {
+			localChecksum := sha256.Sum256(cfg.Content)
+			if cloudChecksum == localChecksum {
+				continue // одинаковый, не пушим
+			} else {
+				cloudConfigRegistry.SetChecksum(cfg.KeyName, localChecksum)
+			}
+		}
+		filteredConfigs = append(filteredConfigs, cfg)
+	}
+
+	// Updating cloud registry after removing extra configs
+	if (!cloudRegistryChanged) && len(filteredConfigs) == 0 {
+		return nil, ErrNothingToPush
+	}
+
+	if err := s.CloudManager.SaveCloudConfigRegistry(*cloudConfigRegistry); err != nil {
+		return nil, err
+	}
+
+	// Starting Updaing all of the colected configs
+	return s.CloudManager.ConcurrentUpdateConfigs(filteredConfigs)
 }
 
 func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {

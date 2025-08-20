@@ -111,3 +111,17 @@ func (mr *MockOsServiceMockRecorder) OpenInEditor(editor, path any) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OpenInEditor", reflect.TypeOf((*MockOsService)(nil).OpenInEditor), editor, path)
 }
+
+// WriteFile mocks base method.
+func (m *MockOsService) WriteFile(path string, data []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteFile", path, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WriteFile indicates an expected call of WriteFile.
+func (mr *MockOsServiceMockRecorder) WriteFile(path, data any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteFile", reflect.TypeOf((*MockOsService)(nil).WriteFile), path, data)
+}

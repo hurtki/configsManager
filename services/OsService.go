@@ -13,6 +13,7 @@ type OsService interface {
 	FileExists(path string) (bool, error)
 	GetAbsolutePath(path string) (string, error)
 	MakePathAndFile(path string) error
+	WriteFile(path string, data []byte) error
 }
 
 type OsServiceImpl struct{}
@@ -77,4 +78,12 @@ func (s *OsServiceImpl) FileExists(path string) (bool, error) {
 
 func (s *OsServiceImpl) GetAbsolutePath(path string) (string, error) {
 	return filepath.Abs(path)
+}
+func (s *OsServiceImpl) WriteFile(path string, data []byte) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, 0644)
 }

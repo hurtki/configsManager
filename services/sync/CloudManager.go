@@ -3,6 +3,7 @@ package sync_services
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"sync"
 )
 
 const (
@@ -11,8 +12,10 @@ const (
 
 type CloudManager interface {
 	GetCloudInfo() (*CloudConfigRegistry, error)
+	SaveCloudConfigRegistry(cloudConfigRegistry CloudConfigRegistry) error
 
 	UpdateConfig(ConfigObj) error
+	ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*SyncResult, error)
 	DownloadConfig(key string) (*ConfigObj, error)
 }
 
@@ -85,6 +88,58 @@ func (m *CloudManagerImpl) UpdateConfig(configObj ConfigObj) error {
 	}
 
 	return nil
+}
+
+func (m CloudManagerImpl) ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*SyncResult, error) {
+	cloudRegistry, err := m.GetCloudInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	results := []*SyncResult{}
+	resChan := make(chan SyncResult)
+	wg := &sync.WaitGroup{}
+	wg.Add(len(configs))
+
+	for _, cfg := range configs {
+		checksum := sha256.Sum256(cfg.Content)
+		cloudRegistry.SetChecksum(cfg.KeyName, checksum)
+		go func(cfg *ConfigObj) {
+			defer wg.Done()
+			data, err := json.Marshal(cfg)
+
+			if err != nil {
+				resChan <- SyncResult{
+					ConfigObj: cfg,
+					Error:     err,
+				}
+			}
+
+			if err := m.Provider.Upload(cfg.KeyName+".json", data); err != nil {
+				resChan <- SyncResult{
+					ConfigObj: cfg,
+					Error:     err,
+				}
+			}
+			resChan <- SyncResult{
+				ConfigObj: cfg,
+				Error:     err,
+			}
+		}(cfg)
+	}
+	if err := m.SaveCloudConfigRegistry(*cloudRegistry); err != nil {
+		return nil, err
+	}
+	go func() {
+		wg.Wait()
+		close(resChan)
+	}()
+
+	for res := range resChan {
+		results = append(results, &res)
+	}
+
+	return results, nil
 }
 
 func (m *CloudManagerImpl) DownloadConfig(key string) (*ConfigObj, error) {
