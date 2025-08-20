@@ -14,13 +14,18 @@ type SyncLogoutCmd struct {
 }
 
 func (c *SyncLogoutCmd) run(cmd *cobra.Command, args []string) error {
-	dropboxFlag := c.Dropbox
+	if c.Dropbox {
+		if err := c.syncService.Logout("dropbox"); err != nil {
+			return err
+		}
+		fmt.Println("Deleted dropbox access and refresh tokens from system successfully!")
+	} else {
+		if err := c.syncService.Logout(""); err != nil {
+			return err
+		}
+		fmt.Println("Deleted all access and refresh tokens from system successfully!")
+	}
 
-	fmt.Printf("Flag dropbox: %t\n", dropboxFlag)
-
-	// здесь нам нужно попросить SyncService удалить токены из памяти, или конкретно какого провайдера
-	// LogOut(string) error
-	// типо если строка пустая то их всех выходит
 	return nil
 }
 

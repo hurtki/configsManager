@@ -18,20 +18,12 @@ func (n NoopCloudManager) SaveCloudConfigRegistry(reg CloudConfigRegistry) error
 	return ErrNotAuthenticated
 }
 
-func (n NoopCloudManager) SetConfig(key string, checksum [32]byte) error {
-	return ErrNotAuthenticated
-}
-
-func (n NoopCloudManager) RemoveConfig(key string) error {
-	return ErrNotAuthenticated
-}
-
-func (n NoopCloudManager) SetChecksum(key string, checksum [32]byte) error {
-	return ErrNotAuthenticated
-}
-
 func (n NoopCloudManager) UpdateConfig(cfg ConfigObj) error {
 	return ErrNotAuthenticated
+}
+
+func (m NoopCloudManager) ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*SyncResult, error) {
+	return nil, ErrNotAuthenticated
 }
 
 func (n NoopCloudManager) DownloadConfig(key string) (*ConfigObj, error) {
