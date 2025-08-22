@@ -84,6 +84,21 @@ func (mr *MockOsServiceMockRecorder) GetFileData(path any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileData", reflect.TypeOf((*MockOsService)(nil).GetFileData), path)
 }
 
+// GetHomeDir mocks base method.
+func (m *MockOsService) GetHomeDir() (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHomeDir")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHomeDir indicates an expected call of GetHomeDir.
+func (mr *MockOsServiceMockRecorder) GetHomeDir() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHomeDir", reflect.TypeOf((*MockOsService)(nil).GetHomeDir))
+}
+
 // MakePathAndFile mocks base method.
 func (m *MockOsService) MakePathAndFile(path string) error {
 	m.ctrl.T.Helper()

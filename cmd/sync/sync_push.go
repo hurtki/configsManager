@@ -25,12 +25,15 @@ func (c *SyncPushCmd) run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	configObjs := []*sync_services.ConfigObj{}
+	homeDir, _ := c.osService.GetHomeDir()
 	for _, key := range configList.GetAllKeys() {
 		cfgObj := sync_services.ConfigObj{}
 		cfgObj.KeyName = key
-		cfgObj.DeterminedPath, _ = configList.GetPath(key)
-		cfgObj.FileName = filepath.Base(cfgObj.DeterminedPath)
-		data, err := c.osService.GetFileData(cfgObj.DeterminedPath)
+		absCfgPath, _ := configList.GetPath(key)
+		cfgObj.DeterminedPath = sync_services.NewDeterminedPath(absCfgPath, homeDir)
+		fmt.Printf("New determined path with path: %s\n", cfgObj.DeterminedPath.BuildPath(homeDir))
+		cfgObj.FileName = filepath.Base(absCfgPath)
+		data, err := c.osService.GetFileData(absCfgPath)
 
 		if err != nil {
 			return err
