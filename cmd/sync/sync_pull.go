@@ -35,13 +35,15 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 				}
 				fmt.Printf("for '%s', error: %d\n", res.ConfigObj.KeyName, res.Error)
 			} else {
-				if err := c.osService.MakePathAndFile(res.ConfigObj.DeterminedPath); err != nil {
+				homeDir, _ := c.osService.GetHomeDir()
+				cfgPath := res.ConfigObj.DeterminedPath.BuildPath(homeDir)
+				if err := c.osService.MakePathAndFile(cfgPath); err != nil {
 					return err
 				}
-				if err := c.osService.WriteFile(res.ConfigObj.DeterminedPath, res.ConfigObj.Content); err != nil {
+				if err := c.osService.WriteFile(cfgPath, res.ConfigObj.Content); err != nil {
 					return err
 				}
-				fmt.Printf("pulled config to: %s\n", res.ConfigObj.DeterminedPath)
+				fmt.Printf("pulled config to: %s\n", cfgPath)
 			}
 		}
 
@@ -54,13 +56,15 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 			return res.Error
 		}
 		if c.SamePlace {
-			if err := c.osService.MakePathAndFile(res.ConfigObj.DeterminedPath); err != nil {
+			homeDir, _ := c.osService.GetHomeDir()
+			cfgPath := res.ConfigObj.DeterminedPath.BuildPath(homeDir)
+			if err := c.osService.MakePathAndFile(cfgPath); err != nil {
 				return err
 			}
-			if err := c.osService.WriteFile(res.ConfigObj.DeterminedPath, res.ConfigObj.Content); err != nil {
+			if err := c.osService.WriteFile(cfgPath, res.ConfigObj.Content); err != nil {
 				return err
 			}
-			fmt.Printf("pulled config to: %s\n", res.ConfigObj.DeterminedPath)
+			fmt.Printf("pulled config to: %s\n", cfgPath)
 		} else {
 			if err := c.osService.WriteFile(res.ConfigObj.FileName, res.ConfigObj.Content); err != nil {
 				return err
@@ -68,9 +72,6 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 			fmt.Printf("pulled config: %s to executing folder\n", res.ConfigObj.FileName)
 		}
 
-		// здесь надо получить от SyncService один ConfigObj по ключу
-		// дальше мы закидываем его в папку где мы есть либо если --sp то где он должен быть
-		// добавляем в локальным ConfigsList
 	} else if len(args) == 2 {
 		if c.SamePlace || c.All {
 			return ErrPullAllAndSpFlagsNotSupported
@@ -86,7 +87,7 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 		if err := c.osService.WriteFile(path, res.ConfigObj.Content); err != nil {
 			return err
 		}
-		fmt.Printf("pulled config to: %s\n", res.ConfigObj.DeterminedPath)
+		fmt.Printf("pulled config to: %s\n", path)
 	} else {
 		return ErrPullMoreThanTwoArgumentsProvided
 	}

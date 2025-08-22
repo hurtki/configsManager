@@ -1,27 +1,40 @@
 package sync_services
 
 import (
-	"io"
 	"path/filepath"
+	"strings"
 )
 
 type ConfigObj struct {
 	KeyName        string
 	FileName       string // with extension
 	Content        []byte
-	DeterminedPath string
+	DeterminedPath DeterminedPath
 }
 
-func NewConfigObj(file io.Reader, path, key string) (*ConfigObj, error) {
-	content, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
+type DeterminedPath struct {
+	Path        string 
+	FromHomeDir bool
+}
 
-	return &ConfigObj{
-		KeyName:        key,
-		FileName:       filepath.Base(path),
-		Content:        content,
-		DeterminedPath: filepath.Dir(path),
-	}, nil
+func (p *DeterminedPath) BuildPath(homeDir string) string {
+	if p.FromHomeDir {
+		return filepath.Join(homeDir, p.Path)
+	} else {
+		return p.Path
+	}
+}
+
+func NewDeterminedPath(path, homeDir string) DeterminedPath {
+	if strings.HasPrefix(path, homeDir) {
+		return DeterminedPath{
+			Path:        strings.TrimPrefix(path, homeDir),
+			FromHomeDir: true,
+		}
+	} else {
+		return DeterminedPath{
+			Path:        path,
+			FromHomeDir: false,
+		}
+	}
 }

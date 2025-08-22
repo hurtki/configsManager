@@ -14,6 +14,7 @@ type OsService interface {
 	GetAbsolutePath(path string) (string, error)
 	MakePathAndFile(path string) error
 	WriteFile(path string, data []byte) error
+	GetHomeDir() (string, error)
 }
 
 type OsServiceImpl struct{}
@@ -86,4 +87,8 @@ func (s *OsServiceImpl) WriteFile(path string, data []byte) error {
 	}
 
 	return os.WriteFile(path, data, 0644)
+}
+
+func (s *OsServiceImpl) GetHomeDir() (string, error) {
+	return os.UserHomeDir()
 }
