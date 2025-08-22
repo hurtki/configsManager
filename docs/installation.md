@@ -1,18 +1,13 @@
-# ConfigsManager
-ConfigsManager is a simple and efficient CLI application that helps you 
-manage your configuration files by associating keys with file paths.
-**Supports only UNIX-like systems.**
+# ConfigsManager Docs
 
-Built with [Cobra CLI](https://github.com/spf13/cobra) library to provide a powerful and user-friendly command line interface.
+* [Main Page](index.html)
+* **[Install](installation.html)**
+* [Commands](commands.html)
+* [Configuration](cm_configuration.html)
 
-### With configsManager, you can:
-- Manage configs 
-- Retrieve config paths by keys
-- View content of config files
-- List all stored config keys
-- Open config files in your preferred editor
 
-# Fast start 
+## Install
+
 ### Linux (x86_64 / AMD64)
 ```
 curl -L https://github.com/hurtki/configsManager/releases/latest/download/cm-linux-amd64 -o cm
@@ -45,7 +40,4 @@ sudo mv cm /usr/local/bin/
 cm init
 ```
 
-# Initializing 
-`cm init`
 
-### [Full documentaion](https://hurtki.github.io/configsManager/)
