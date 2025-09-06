@@ -30,9 +30,10 @@ type TokenStoreImpl struct {
 }
 
 type TokenPair struct {
-	Access  string
-	Refresh string
+	Access  string `json:"access_token"`
+	Refresh string `json:"refresh_token"`
 }
+
 
 func (s *TokenStoreImpl) SaveToken(providerName string, tokenPair TokenPair) error {
 	if providerName == "dropbox" {
