@@ -44,14 +44,20 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 
 	if len(args) < 2 {
 		if isPipe && len(args) == 0 {
-			key = strings.TrimSuffix(filepath.Base(pipedData), filepath.Ext(pipedData))
 			value = pipedData
+			key = strings.TrimSuffix(filepath.Base(value), filepath.Ext(value))
+			if key == "" {
+				key = strings.TrimPrefix(filepath.Ext(value), ".")
+			}
 		} else if isPipe && len(args) == 1 {
 			key = args[0]
 			value = pipedData
 		} else {
 			value = args[0]
-			key = strings.TrimSuffix(filepath.Base(args[0]), filepath.Ext(args[0]))
+			key = strings.TrimSuffix(filepath.Base(value), filepath.Ext(value))
+			if key == "" {
+				key = strings.TrimPrefix(filepath.Ext(value), ".")
+			}
 		}
 	} else {
 		key = args[0]

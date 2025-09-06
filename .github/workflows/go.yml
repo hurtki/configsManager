@@ -16,4 +16,15 @@ jobs:
           cache: false           
 
       - run: go env             
-      - run: go test -v ./...
+
+      # formating checking 
+      - name: Check gofmt
+        run: |
+          if [ -n "$(gofmt -s -l .)" ]; then
+            echo "Go files are not formatted. Run 'gofmt -s -w .' to fix."
+            exit 1
+          fi
+          
+      # Running tests
+      - name: Run tests
+        run: go test -v ./... --count=1

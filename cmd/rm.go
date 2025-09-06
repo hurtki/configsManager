@@ -16,16 +16,18 @@ func (c *RmCmd) run(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("not enough args")
 	}
-	key := args[0]
 	configsList, err := c.ConfigsListService.Load()
 	if err != nil {
 		return err
 	}
-	configsList.RemoveConfig(key)
+	for _, key := range args {
+		configsList.RemoveConfig(key)
+	}
 	if err := c.ConfigsListService.Save(configsList); err != nil {
 		return err
 	}
 	return nil
+
 }
 
 func NewRmCmd(AppConfig services.AppConfigService, ConfigsListService services.ConfigsListService) RmCmd {
@@ -35,17 +37,17 @@ func NewRmCmd(AppConfig services.AppConfigService, ConfigsListService services.C
 	}
 
 	cmd := &cobra.Command{
-		Use:   "rm [key]",
-		Short: "Delete a specific key from the configuration list",
-		Long: `The 'rm' command allows you to delete a configuration key from your local config file.
-	You must specify the key name you want to remove.
+		Use:   "rm key1 key2 ...",
+		Short: "Delete keys from the configuration list",
+		Long: `The 'rm' command allows you to delete a cuple or only one key from your local config file.
+	You must specify the key/s name/s you want to remove.
 
 	Example:
-	cm rm editor
+	cm rm nginx django
 
-	This command will remove the 'editor' key and its value from your configuration file.
-	If the specified key does not exist, an error will be shown and no changes will be made.
-
+	This command will remove the 'nginx' and 'django' keys and its values from your configuration file.
+	If the some of the keys does not exist, an error won't be shown and other keys will be deleted correctly.
+	
 	Use this command with caution — deleted keys cannot be recovered unless you re-add them manually.`,
 		RunE: rmCmd.run,
 	}
