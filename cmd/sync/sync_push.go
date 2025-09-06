@@ -31,7 +31,6 @@ func (c *SyncPushCmd) run(cmd *cobra.Command, args []string) error {
 		cfgObj.KeyName = key
 		absCfgPath, _ := configList.GetPath(key)
 		cfgObj.DeterminedPath = sync_services.NewDeterminedPath(absCfgPath, homeDir)
-		fmt.Printf("New determined path with path: %s\n", cfgObj.DeterminedPath.BuildPath(homeDir))
 		cfgObj.FileName = filepath.Base(absCfgPath)
 		data, err := c.osService.GetFileData(absCfgPath)
 

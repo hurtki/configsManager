@@ -19,3 +19,8 @@ func (r *CloudConfigRegistry) SetChecksum(key string, checksum [32]byte) {
 func (r *CloudConfigRegistry) RemoveKey(key string) {
 	delete(r.Configs, key)
 }
+
+func (r *CloudConfigRegistry) KeyExist(key string) bool {
+	_, ok := r.Configs[key]
+	return ok
+}

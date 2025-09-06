@@ -29,11 +29,14 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 		}
 
 		for i, res := range res {
+
 			if res.Error != nil {
 				if res.ConfigObj.KeyName == "" {
 					fmt.Printf("error for index: %s, error: %d\n", fmt.Sprint(i), res.Error)
+				} else {
+					fmt.Printf("for '%s', error: %d\n", res.ConfigObj.KeyName, res.Error)
 				}
-				fmt.Printf("for '%s', error: %d\n", res.ConfigObj.KeyName, res.Error)
+
 			} else {
 				homeDir, _ := c.osService.GetHomeDir()
 				cfgPath := res.ConfigObj.DeterminedPath.BuildPath(homeDir)

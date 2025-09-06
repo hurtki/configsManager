@@ -2,13 +2,12 @@ package sync_services
 
 import (
 	"crypto/sha256"
-	"fmt"
 	"sync"
 )
 
 type SyncService interface {
 	// Authorization
-	Auth(provider string, token string) error
+	Auth(provider string) error
 	Logout(provider string) error // blank provider param => logout for everyone
 
 	// Pulling
@@ -29,12 +28,8 @@ type SyncResult struct {
 	Error     error
 }
 
-func (s *SyncServiceImpl) Auth(provider, token string) error {
-	if token == "" {
-		return s.AuthManager.Authenticate(provider)
-	} else {
-		return fmt.Errorf("token authorisation not supported")
-	}
+func (s *SyncServiceImpl) Auth(provider string) error {
+	return s.AuthManager.Authenticate(provider)
 }
 
 func (s *SyncServiceImpl) Logout(provider string) error {
@@ -45,6 +40,20 @@ func (s *SyncServiceImpl) Logout(provider string) error {
 }
 
 func (s *SyncServiceImpl) PullOne(key string) SyncResult {
+	configRegistry, err := s.CloudManager.GetCloudInfo()
+	if err != nil {
+		return SyncResult{
+			ConfigObj: nil,
+			Error:     err,
+		}
+	}
+	if !configRegistry.KeyExist(key) {
+		return SyncResult{
+			ConfigObj: nil,
+			Error:     ErrKeyNotFoundInCloud,
+		}
+	}
+
 	cfgObj, err := s.CloudManager.DownloadConfig(key)
 	return SyncResult{ConfigObj: cfgObj, Error: err}
 }
@@ -71,21 +80,12 @@ func (s *SyncServiceImpl) PullAll() ([]SyncResult, error) {
 		close(resChan)
 	}()
 	for res := range resChan {
-
 		results = append(results, res)
 	}
 	return results, nil
 }
 func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult, error) {
 	cloudConfigRegistry, err := s.CloudManager.GetCloudInfo()
-	if err == ErrUnauthorizedRequest {
-		// try for refresing token
-		if refreshErr := s.AuthManager.RefreshToken("dropbox"); refreshErr != nil {
-			return nil, refreshErr
-		}
-		// additioinal request
-		cloudConfigRegistry, err = s.CloudManager.GetCloudInfo()
-	}
 
 	if err != nil {
 		return nil, err
@@ -135,7 +135,9 @@ func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult,
 
 func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
 	token, err := authManager.GetToken("dropbox")
-	var cloud CloudManager = NoopCloudManager{}
+	var cloud CloudManager = NoopCloudManager{
+		Error: err,
+	}
 	if err == nil {
 		cloud = NewCloudManagerImpl(token)
 	}

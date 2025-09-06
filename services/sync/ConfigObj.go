@@ -13,7 +13,7 @@ type ConfigObj struct {
 }
 
 type DeterminedPath struct {
-	Path        string 
+	Path        string
 	FromHomeDir bool
 }
 

@@ -11,27 +11,15 @@ type SyncAuthCmd struct {
 	syncService sync_services.SyncService
 	Command     *cobra.Command
 	Dropbox     bool
-	Token       string
 }
 
 func (c *SyncAuthCmd) run(cmd *cobra.Command, args []string) error {
-
-	if (!c.Dropbox) && c.Token != "token_not_given" {
-		return ErrAuthTokeWithoutProvider
-	}
-
-	if c.Dropbox && (c.Token == "token_not_given") {
-		if err := c.syncService.Auth("dropbox", ""); err != nil {
+	if c.Dropbox {
+		if err := c.syncService.Auth("dropbox"); err != nil {
 			return err
 		}
 		fmt.Println("Authorized in with dropbox!")
-	} else if c.Dropbox && (c.Token != "token_not_given") {
-		if err := c.syncService.Auth("dropbox", c.Token); err != nil {
-			return err
-		}
-		fmt.Println("Authorized in with dropbox token!")
 	}
-
 	return nil
 }
 
@@ -49,8 +37,7 @@ func NewSyncAuthCmd(syncService sync_services.SyncService) *SyncAuthCmd {
 
 	cmd.Flags().BoolVar(&syncAuthCmd.Dropbox, "dropbox", false, "Use dropbox as cloud sync provider")
 	cmd.Flags().StringP("token", "t", "token_not_given", "To authorize with access token, not refresh")
-	cmd.MarkFlagsOneRequired("token", "dropbox")
-	syncAuthCmd.Token, _ = cmd.Flags().GetString("token")
+	cmd.MarkFlagsOneRequired("dropbox")
 
 	syncAuthCmd.Command = cmd
 

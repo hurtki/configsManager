@@ -5,10 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/term"
 	"io"
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -17,16 +19,13 @@ var (
 	dropboxAppKey = "6j9zzv3szf21pid"
 )
 
-type AuthResult struct {
-	Success bool
-}
-
 type AuthManager interface {
 	Authenticate(providerName string) error
-	RefreshToken(providerName string) error
 	GetToken(providerName string) (string, error)
 	RemoveToken(providerName string) error
 	RemoveAllTokens() error
+	// WIP
+	// RefreshToken(providerName string) error
 }
 
 type AuthManagerImpl struct {
@@ -48,12 +47,15 @@ func (m *AuthManagerImpl) authenticateDropbox() error {
 	hash := sha256.Sum256([]byte(codeVerifier))
 	codeChallenge := base64.RawURLEncoding.EncodeToString(hash[:])
 
-	fmt.Printf("https://www.dropbox.com/oauth2/authorize?client_id=%s&response_type=code&code_challenge=%s&code_challenge_method=S256&token_access_type=offline\n", dropboxAppKey, codeChallenge)
-	var tokenFromUser string
-	fmt.Print("Paste code you got from dropbox:")
-	if _, err := fmt.Scanln(&tokenFromUser); err != nil {
+	fmt.Printf("\x1b]8;;https://www.dropbox.com/oauth2/authorize?client_id=%s&response_type=code&code_challenge=%s&code_challenge_method=S256&token_access_type=offline\x1b\\Click here to authorize\x1b]8;;\x1b\\\n", dropboxAppKey, codeChallenge)
+
+	fmt.Print("Paste code you got from Dropbox: ")
+	codeBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+	if err != nil {
 		return err
 	}
+	fmt.Println()
+	tokenFromUser := string(codeBytes)
 
 	reqUrl := "https://api.dropboxapi.com/oauth2/token"
 
@@ -102,6 +104,52 @@ func (m *AuthManagerImpl) authenticateDropbox() error {
 	return m.TokenStore.SaveToken("dropbox", tokenPair)
 }
 
+func (m *AuthManagerImpl) getTokenDropbox() (string, error) {
+
+	tokenPair, err := m.TokenStore.LoadToken("dropbox")
+	if err != nil {
+		return "", err
+	}
+	return tokenPair.Access, nil
+}
+
+func (m *AuthManagerImpl) Authenticate(providerName string) error {
+	if providerName == "dropbox" {
+		return m.authenticateDropbox()
+	}
+	return ErrAuthProviderDoesntExist
+}
+
+func (m *AuthManagerImpl) GetToken(providerName string) (string, error) {
+	if providerName == "dropbox" {
+		return m.getTokenDropbox()
+	}
+	return "", ErrAuthProviderDoesntExist
+}
+
+func (m *AuthManagerImpl) RemoveToken(providerName string) error {
+	return m.TokenStore.DeleteToken(providerName)
+}
+
+func (m *AuthManagerImpl) RemoveAllTokens() error {
+	return m.TokenStore.DeleteToken("dropbox")
+}
+
+func NewAuthManagerImpl(TokenStore TokenStore) AuthManager {
+	return &AuthManagerImpl{
+		TokenStore: TokenStore,
+	}
+}
+
+// =================== WIP ====================
+// ============================================
+func (m *AuthManagerImpl) RefreshToken(providerName string) error {
+	if providerName == "dropbox" {
+		return m.refreshDropbox()
+	}
+	return ErrAuthProviderDoesntExist
+}
+
 func (m *AuthManagerImpl) refreshDropbox() error {
 	tokenPair, err := m.TokenStore.LoadToken("dropbox")
 	if err != nil {
@@ -143,48 +191,4 @@ func (m *AuthManagerImpl) refreshDropbox() error {
 
 	tokenPair.Access = respJson.Access // updating only access field in tokenPair
 	return m.TokenStore.SaveToken("dropbox", *tokenPair)
-}
-
-func (m *AuthManagerImpl) getTokenDropbox() (string, error) {
-
-	tokenPair, err := m.TokenStore.LoadToken("dropbox")
-	if err != nil {
-		return "", err
-	}
-	return tokenPair.Access, nil
-}
-
-func (m *AuthManagerImpl) Authenticate(providerName string) error {
-	if providerName == "dropbox" {
-		return m.authenticateDropbox()
-	}
-	return ErrAuthProviderDoesntExist
-}
-
-func (m *AuthManagerImpl) RefreshToken(providerName string) error {
-	if providerName == "dropbox" {
-		return m.refreshDropbox()
-	}
-	return ErrAuthProviderDoesntExist
-}
-
-func (m *AuthManagerImpl) GetToken(providerName string) (string, error) {
-	if providerName == "dropbox" {
-		return m.getTokenDropbox()
-	}
-	return "", ErrAuthProviderDoesntExist
-}
-
-func (m *AuthManagerImpl) RemoveToken(providerName string) error {
-	return m.TokenStore.DeleteToken(providerName)
-}
-
-func (m *AuthManagerImpl) RemoveAllTokens() error {
-	return m.TokenStore.DeleteToken("dropbox")
-}
-
-func NewAuthManagerImpl(TokenStore TokenStore) AuthManager {
-	return &AuthManagerImpl{
-		TokenStore: TokenStore,
-	}
 }

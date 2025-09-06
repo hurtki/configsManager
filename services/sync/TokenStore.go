@@ -1,6 +1,8 @@
 package sync_services
 
 import (
+	"strings"
+
 	"github.com/99designs/keyring"
 )
 
@@ -28,12 +30,11 @@ type TokenStoreImpl struct {
 }
 
 type TokenPair struct {
-	Access  string `json:"access_token"`
-	Refresh string `json:"refresh_token"`
+	Access  string
+	Refresh string
 }
 
 func (s *TokenStoreImpl) SaveToken(providerName string, tokenPair TokenPair) error {
-
 	if providerName == "dropbox" {
 		if err := s.ring.Set(keyring.Item{
 			Key:  dropboxAccessTokenKeyName,
@@ -45,8 +46,10 @@ func (s *TokenStoreImpl) SaveToken(providerName string, tokenPair TokenPair) err
 			Key:  dropboxRefreshTokenKeyName,
 			Data: []byte(tokenPair.Refresh),
 		}); err != nil {
+
 			return err
 		}
+
 	} else {
 		return ErrAuthProviderDoesntExist
 	}
@@ -56,10 +59,13 @@ func (s *TokenStoreImpl) SaveToken(providerName string, tokenPair TokenPair) err
 }
 
 func (s *TokenStoreImpl) LoadToken(providerName string) (*TokenPair, error) {
-
 	if providerName == "dropbox" {
 		accessToken, err := s.ring.Get(dropboxAccessTokenKeyName)
 		if err != nil {
+			if strings.Contains(err.Error(), "integrity check failed") {
+				return nil, ErrRetrieveTokenFromStorage
+			}
+
 			if err == keyring.ErrKeyNotFound {
 				return nil, ErrTokenNotFoundInSecrets
 			}
@@ -105,8 +111,16 @@ func (s *TokenStoreImpl) DeleteToken(providerName string) error {
 
 func NewTokenStoreImpl() *TokenStoreImpl {
 	ring, _ := keyring.Open(keyring.Config{
-		ServiceName: keyringServiceName,
+		AllowedBackends: []keyring.BackendType{
+			//keyring.KeychainBackend,
+			//keyring.PassBackend,
+			keyring.FileBackend,
+		},
+		ServiceName:      keyringServiceName,
+		FileDir:          "~/.config/configsManager/sync_tokens/",
+		FilePasswordFunc: keyring.TerminalPrompt,
 	})
+
 	return &TokenStoreImpl{
 		ring: ring,
 	}

@@ -1,31 +1,33 @@
 package sync_services
 
-type NoopCloudManager struct{}
-
-func (n NoopCloudManager) GetCloudInfo() (*CloudConfigRegistry, error) {
-	return nil, ErrNotAuthenticated
+type NoopCloudManager struct {
+	Error error
 }
 
-func (n NoopCloudManager) GetChecksum(key string) (*[32]byte, error) {
-	return nil, ErrNotAuthenticated
+func (m NoopCloudManager) GetCloudInfo() (*CloudConfigRegistry, error) {
+	return nil, m.Error
 }
 
-func (n NoopCloudManager) GetAllKeys() ([]string, error) {
-	return nil, ErrNotAuthenticated
+func (m NoopCloudManager) GetChecksum(key string) (*[32]byte, error) {
+	return nil, m.Error
 }
 
-func (n NoopCloudManager) SaveCloudConfigRegistry(reg CloudConfigRegistry) error {
-	return ErrNotAuthenticated
+func (m NoopCloudManager) GetAllKeys() ([]string, error) {
+	return nil, m.Error
 }
 
-func (n NoopCloudManager) UpdateConfig(cfg ConfigObj) error {
-	return ErrNotAuthenticated
+func (m NoopCloudManager) SaveCloudConfigRegistry(reg CloudConfigRegistry) error {
+	return m.Error
+}
+
+func (m NoopCloudManager) UpdateConfig(cfg ConfigObj) error {
+	return m.Error
 }
 
 func (m NoopCloudManager) ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*SyncResult, error) {
-	return nil, ErrNotAuthenticated
+	return nil, m.Error
 }
 
-func (n NoopCloudManager) DownloadConfig(key string) (*ConfigObj, error) {
-	return nil, ErrNotAuthenticated
+func (m NoopCloudManager) DownloadConfig(key string) (*ConfigObj, error) {
+	return nil, m.Error
 }

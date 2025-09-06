@@ -7,5 +7,4 @@ var (
 	ErrPullAllFlagNotSupported          = errors.New("--all flag is not supported when one argument is provided")
 	ErrPullAllAndSpFlagsNotSupported    = errors.New("--all and --sp flags are not supported with two arguments provided")
 	ErrPullMoreThanTwoArgumentsProvided = errors.New("'cm sync pull' doesn't support more than 2 arguments")
-	ErrAuthTokeWithoutProvider          = errors.New("connot use --token without provider( for example --dropbox )")
 )
