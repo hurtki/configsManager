@@ -112,8 +112,10 @@ func (s *TokenStoreImpl) DeleteToken(providerName string) error {
 func NewTokenStoreImpl() *TokenStoreImpl {
 	ring, _ := keyring.Open(keyring.Config{
 		AllowedBackends: []keyring.BackendType{
-			//keyring.KeychainBackend,
-			//keyring.PassBackend,
+			keyring.KWalletBackend,
+			keyring.SecretServiceBackend,
+			keyring.KeychainBackend,
+			keyring.PassBackend,
 			keyring.FileBackend,
 		},
 		ServiceName:      keyringServiceName,
