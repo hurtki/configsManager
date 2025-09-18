@@ -35,11 +35,12 @@ func NewSyncLogoutCmd(syncService sync_services.SyncService) *SyncLogoutCmd {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "logout",
-		Short: "Logout from your cloud accounts",
-		Long:  ``,
-		RunE:  syncLogoutCmd.run,
-	}
+        Use:   "logout",
+        Short: "Logout from your cloud accounts",
+        Long: `Logout from cloud services configured with ConfigsManager.
+Supports logging out from specific providers (e.g., Dropbox) or all at once.`,
+        RunE: syncLogoutCmd.run,
+    }
 
 	cmd.Flags().BoolVar(&syncLogoutCmd.Dropbox, "dropbox", false, "Logout from dropbox sync")
 
