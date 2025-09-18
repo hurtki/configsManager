@@ -3,6 +3,7 @@
 * **[Main Page](index.html)**
 * [Install](installation.html)
 * [Commands](commands.html)
+* [Sync](sync.html)
 * [Configuration](cm_configuration.html)
 
 
