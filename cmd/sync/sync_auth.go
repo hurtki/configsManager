@@ -28,16 +28,14 @@ func NewSyncAuthCmd(syncService sync_services.SyncService) *SyncAuthCmd {
 		syncService: syncService,
 	}
 
-
 	cmd := &cobra.Command{
-		Use:   "auth", 
-		Short: "Authorize using OAuth2", 
+		Use:   "auth",
+		Short: "Authorize using OAuth2",
 		Long: `Authorize your ConfigsManager account using OAuth2 (Dropbox). 
 		This command sets up authentication
-		so that you can push/pull configurations to/from the cloud.`, 
-		RunE: syncAuthCmd.run, 
+		so that you can push/pull configurations to/from the cloud.`,
+		RunE: syncAuthCmd.run,
 	}
-
 
 	cmd.Flags().BoolVar(&syncAuthCmd.Dropbox, "dropbox", false, "Use dropbox as cloud sync provider")
 	cmd.MarkFlagsOneRequired("dropbox")

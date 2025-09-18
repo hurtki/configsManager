@@ -101,13 +101,13 @@ func NewSyncPullCmd(syncService sync_services.SyncService, osService services.Os
 	syncPullCmd := &SyncPullCmd{syncService: syncService, osService: osService}
 
 	cmd := &cobra.Command{
-        Use:   "pull",
-        Short: "Pulls configs from your cloud",
-        Long: `Pull your configuration files from the cloud. 
+		Use:   "pull",
+		Short: "Pulls configs from your cloud",
+		Long: `Pull your configuration files from the cloud. 
 You can pull a single config, all configs, to a specific folder, 
 or restore them to their original paths.`,
-        RunE: syncPullCmd.run,
-    }
+		RunE: syncPullCmd.run,
+	}
 
 	cmd.Flags().BoolVar(&syncPullCmd.All, "all", false, "Pull all the configs")
 	cmd.Flags().BoolVar(&syncPullCmd.SamePlace, "sp", false, "Pull selected config/s")

@@ -70,17 +70,16 @@ func NewSyncPushCmd(syncService sync_services.SyncService,
 	}
 
 	cmd := &cobra.Command{
-    Use:   "push",
-    Short: "Push saves configs to cloud",
-    Long: `Push your local configuration files to the cloud.
+		Use:   "push",
+		Short: "Push saves configs to cloud",
+		Long: `Push your local configuration files to the cloud.
 This command uploads the files, their metadata, and the paths
 where they were stored at the time of pushing.
 
 You can use it to back up your configs quickly and safely,
 so that later you can pull them to any machine or folder.`,
-    RunE: syncPushCmd.run,
-}
-
+		RunE: syncPushCmd.run,
+	}
 
 	// not realised feature
 	//cmd.Flags().BoolVar(&syncPushCmd.Force, "force", false, "Ignore inappropriate configs while pushing")

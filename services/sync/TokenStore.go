@@ -34,7 +34,6 @@ type TokenPair struct {
 	Refresh string `json:"refresh_token"`
 }
 
-
 func (s *TokenStoreImpl) SaveToken(providerName string, tokenPair TokenPair) error {
 	if providerName == "dropbox" {
 		if err := s.ring.Set(keyring.Item{
