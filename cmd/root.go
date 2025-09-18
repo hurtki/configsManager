@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/hurtki/configsManager/services"
+	syncServices "github.com/hurtki/configsManager/services/sync"
 	"github.com/spf13/cobra"
 )
 
@@ -46,6 +47,7 @@ func NewRootCmd(AppConfigService services.AppConfigService,
 	InputService services.InputService,
 	ConfigsListService services.ConfigsListService,
 	OsService services.OsService,
+	SyncService syncServices.SyncService,
 ) *cobra.Command {
 	// creating commands with dependencies
 	addCmd := NewAddCmd(AppConfigService, InputService, ConfigsListService, OsService)
@@ -55,6 +57,7 @@ func NewRootCmd(AppConfigService services.AppConfigService,
 	pathCmd := NewPathCmd(AppConfigService, ConfigsListService)
 	rmCmd := NewRmCmd(AppConfigService, ConfigsListService)
 	initCmd := NewInitCmd(AppConfigService, ConfigsListService)
+	syncCmd := NewSyncCmd(AppConfigService, ConfigsListService, OsService, SyncService)
 
 	// adding commands to root command
 	rootCmd.AddCommand(
@@ -65,6 +68,7 @@ func NewRootCmd(AppConfigService services.AppConfigService,
 		pathCmd.Command,
 		rmCmd.Command,
 		initCmd.Command,
+		syncCmd.Command,
 	)
 
 	// no errors handling from cobra

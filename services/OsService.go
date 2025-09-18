@@ -13,6 +13,8 @@ type OsService interface {
 	FileExists(path string) (bool, error)
 	GetAbsolutePath(path string) (string, error)
 	MakePathAndFile(path string) error
+	WriteFile(path string, data []byte) error
+	GetHomeDir() (string, error)
 }
 
 type OsServiceImpl struct{}
@@ -37,21 +39,19 @@ func (s *OsServiceImpl) MakePathAndFile(path string) error {
 		return err
 	}
 	defer func() {
-		err := file.Close()
-		if err != nil {
-			fmt.Printf("Error closing file: %d\n", err)
+		if err := file.Close(); err != nil {
+			fmt.Println("error closing file")
 		}
 	}()
-
 	return nil
 }
 
 func (s *OsServiceImpl) GetFileData(path string) ([]byte, error) {
-	text, err := os.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	return text, nil
+	return data, nil
 }
 
 func (s *OsServiceImpl) OpenInEditor(editor, path string) error {
@@ -79,4 +79,16 @@ func (s *OsServiceImpl) FileExists(path string) (bool, error) {
 
 func (s *OsServiceImpl) GetAbsolutePath(path string) (string, error) {
 	return filepath.Abs(path)
+}
+func (s *OsServiceImpl) WriteFile(path string, data []byte) error {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, 0644)
+}
+
+func (s *OsServiceImpl) GetHomeDir() (string, error) {
+	return os.UserHomeDir()
 }
