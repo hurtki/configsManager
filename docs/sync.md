@@ -79,3 +79,21 @@ cm sync pull --all --sp
 > Automatically restores **all synced configs** to the proper folders.
 
 ---
+
+### Logout
+
+The `logout` command removes saved authentication tokens from your system.
+
+**Usage:**
+Logout from all cloud services
+```sh
+cm sync logout
+```
+Logout only from Dropbox
+```sh
+cm sync logout --dropbox
+```
+
+> The command safely deletes access and refresh tokens stored by ConfigsManager.
+---
+
