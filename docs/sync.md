@@ -21,6 +21,18 @@ The **ConfigsManager Sync** feature allows you to quickly save and restore all y
 
 ### Fast Start
 
+**1.Set up a keying vault:**
+Tool tries to check keyring backends in this oreder:
+* KWallet ( linux systems )
+* SecretService ( linux systems )
+* KeyChain ( apple mac systems )
+* Pass ( UNIX systems )
+* File Backend ( supports all systems )
+
+**[SETUP OF PASS TOOL](https://www.passwordstore.org/)**
+
+> If you are getting errors like `file doesn't exist` when tool tries to access `pass` try initializing `pass init [gpg-id/email]` couple of times
+
 Log into Dropbox:
 
 ```sh
