@@ -111,24 +111,40 @@ func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult,
 	for _, cfg := range configs {
 		if cloudChecksum, ok := cloudConfigRegistry.Configs[cfg.KeyName]; ok {
 			localChecksum := sha256.Sum256(cfg.Content)
-			if cloudChecksum != localChecksum {
-				cloudConfigRegistry.SetChecksum(cfg.KeyName, localChecksum)
-				filteredConfigs = append(filteredConfigs, cfg)
+			if cloudChecksum == localChecksum {
+				continue // if same checksum, no need to push
 			}
 		}
-	
+		filteredConfigs = append(filteredConfigs, cfg)
+	}
 
 	// Updating cloud registry after removing extra configs
 	if (!cloudRegistryChanged) && len(filteredConfigs) == 0 {
 		return nil, ErrNothingToPush
 	}
 
-	if err := s.CloudManager.SaveCloudConfigRegistry(*cloudConfigRegistry); err != nil {
+	// Starting Updaing all of the colected configs
+	results, err := s.CloudManager.ConcurrentUpdateConfigs(filteredConfigs)
+
+	// if we got error from pushing so we are exiting without any updates for cloudConfigRegistry
+	if err != nil {
 		return nil, err
 	}
 
-	// Starting Updaing all of the colected configs
-	return s.CloudManager.ConcurrentUpdateConfigs(filteredConfigs)
+	// Using results from pushing configs
+	// if there is no error for specific config => change its checksum ( beacause it was successfully pushed)
+	// if there is an error no need to update checksum in cloud
+	for i := range results {
+		if results[i].Error == nil {
+			cloudConfigRegistry.SetChecksum(results[i].ConfigObj.KeyName, sha256.Sum256(results[i].ConfigObj.Content))
+		}
+	}
+
+	// saving a cloudConfigRegistry
+	if err := s.CloudManager.SaveCloudConfigRegistry(*cloudConfigRegistry); err != nil {
+		return nil, err
+	}
+	return results, nil
 }
 
 func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
