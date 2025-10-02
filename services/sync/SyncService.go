@@ -107,18 +107,16 @@ func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult,
 		}
 	}
 
-	// Ccheking what configs from local are new or changed, and adding them to filtered
+	// Cheking what configs from local are new or changed, and adding them to filtered
 	for _, cfg := range configs {
 		if cloudChecksum, ok := cloudConfigRegistry.Configs[cfg.KeyName]; ok {
 			localChecksum := sha256.Sum256(cfg.Content)
-			if cloudChecksum == localChecksum {
-				continue // одинаковый, не пушим
-			} else {
+			if cloudChecksum != localChecksum {
 				cloudConfigRegistry.SetChecksum(cfg.KeyName, localChecksum)
+				filteredConfigs = append(filteredConfigs, cfg)
 			}
 		}
-		filteredConfigs = append(filteredConfigs, cfg)
-	}
+	
 
 	// Updating cloud registry after removing extra configs
 	if (!cloudRegistryChanged) && len(filteredConfigs) == 0 {
