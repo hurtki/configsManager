@@ -1,20 +1,23 @@
 package sync_services
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"sync"
 )
 
 const (
+	// File that is being stored in cloud, contains all information about config's keys and their checksum
 	cloudManagerFileName = "cloud_manager.json"
 )
 
+// interface that represents entity to manage cloudConfigRegistry and update/download ConcurrentUpdateConfigs
+// So the higher entity ( its dependency is this interface ) should first update configs with ConcurrentUpdateConfigs
+// Then update CloudConfigRegistry with Sync results
+// If you are only downloading configs, no need to change cloudConfigRegistry!!!
 type CloudManager interface {
 	GetCloudInfo() (*CloudConfigRegistry, error)
 	SaveCloudConfigRegistry(cloudConfigRegistry CloudConfigRegistry) error
 
-	UpdateConfig(ConfigObj) error
 	ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*SyncResult, error)
 	DownloadConfig(key string) (*ConfigObj, error)
 }
@@ -66,16 +69,6 @@ func (m *CloudManagerImpl) SaveCloudConfigRegistry(cloudConfigRegistry CloudConf
 }
 
 func (m *CloudManagerImpl) UpdateConfig(configObj ConfigObj) error {
-	checksum := sha256.Sum256(configObj.Content)
-
-	cloudRegistry, err := m.GetCloudInfo()
-	if err != nil {
-		return err
-	}
-	cloudRegistry.SetChecksum(configObj.KeyName, checksum)
-	if err := m.SaveCloudConfigRegistry(*cloudRegistry); err != nil {
-		return err
-	}
 
 	data, err := json.Marshal(configObj)
 
@@ -91,10 +84,6 @@ func (m *CloudManagerImpl) UpdateConfig(configObj ConfigObj) error {
 }
 
 func (m CloudManagerImpl) ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*SyncResult, error) {
-	cloudRegistry, err := m.GetCloudInfo()
-	if err != nil {
-		return nil, err
-	}
 
 	results := []*SyncResult{}
 	resChan := make(chan SyncResult)
@@ -102,8 +91,6 @@ func (m CloudManagerImpl) ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*Sync
 	wg.Add(len(configs))
 
 	for _, cfg := range configs {
-		checksum := sha256.Sum256(cfg.Content)
-		cloudRegistry.SetChecksum(cfg.KeyName, checksum)
 		go func(cfg *ConfigObj) {
 			defer wg.Done()
 			data, err := json.Marshal(cfg)
@@ -113,22 +100,15 @@ func (m CloudManagerImpl) ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*Sync
 					ConfigObj: cfg,
 					Error:     err,
 				}
+				return
 			}
 
-			if err := m.Provider.Upload(cfg.KeyName+".json", data); err != nil {
-				resChan <- SyncResult{
-					ConfigObj: cfg,
-					Error:     err,
-				}
-			}
 			resChan <- SyncResult{
 				ConfigObj: cfg,
-				Error:     err,
+				Error:     m.Provider.Upload(cfg.KeyName+".json", data),
 			}
+
 		}(cfg)
-	}
-	if err := m.SaveCloudConfigRegistry(*cloudRegistry); err != nil {
-		return nil, err
 	}
 	go func() {
 		wg.Wait()

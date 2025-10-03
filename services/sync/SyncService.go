@@ -28,6 +28,20 @@ type SyncResult struct {
 	Error     error
 }
 
+func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
+	token, err := authManager.GetToken("dropbox")
+	var cloud CloudManager = NoopCloudManager{
+		Error: err,
+	}
+	if err == nil {
+		cloud = NewCloudManagerImpl(token)
+	}
+	return &SyncServiceImpl{
+		AuthManager:  authManager,
+		CloudManager: cloud,
+	}
+}
+
 func (s *SyncServiceImpl) Auth(provider string) error {
 	return s.AuthManager.Authenticate(provider)
 }
@@ -107,14 +121,12 @@ func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult,
 		}
 	}
 
-	// Ccheking what configs from local are new or changed, and adding them to filtered
+	// Cheking what configs from local are new or changed, and adding them to filtered
 	for _, cfg := range configs {
 		if cloudChecksum, ok := cloudConfigRegistry.Configs[cfg.KeyName]; ok {
 			localChecksum := sha256.Sum256(cfg.Content)
 			if cloudChecksum == localChecksum {
-				continue // одинаковый, не пушим
-			} else {
-				cloudConfigRegistry.SetChecksum(cfg.KeyName, localChecksum)
+				continue // if same checksum, no need to push
 			}
 		}
 		filteredConfigs = append(filteredConfigs, cfg)
@@ -125,24 +137,26 @@ func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult,
 		return nil, ErrNothingToPush
 	}
 
-	if err := s.CloudManager.SaveCloudConfigRegistry(*cloudConfigRegistry); err != nil {
+	// Starting Updaing all of the colected configs
+	results, err := s.CloudManager.ConcurrentUpdateConfigs(filteredConfigs)
+
+	// if we got error from pushing so we are exiting without any updates for cloudConfigRegistry
+	if err != nil {
 		return nil, err
 	}
 
-	// Starting Updaing all of the colected configs
-	return s.CloudManager.ConcurrentUpdateConfigs(filteredConfigs)
-}
+	// Using results from pushing configs
+	// if there is no error for specific config => change its checksum ( beacause it was successfully pushed)
+	// if there is an error no need to update checksum in cloud
+	for i := range results {
+		if results[i].Error == nil {
+			cloudConfigRegistry.SetChecksum(results[i].ConfigObj.KeyName, sha256.Sum256(results[i].ConfigObj.Content))
+		}
+	}
 
-func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
-	token, err := authManager.GetToken("dropbox")
-	var cloud CloudManager = NoopCloudManager{
-		Error: err,
+	// saving a cloudConfigRegistry
+	if err := s.CloudManager.SaveCloudConfigRegistry(*cloudConfigRegistry); err != nil {
+		return nil, err
 	}
-	if err == nil {
-		cloud = NewCloudManagerImpl(token)
-	}
-	return &SyncServiceImpl{
-		AuthManager:  authManager,
-		CloudManager: cloud,
-	}
+	return results, nil
 }
