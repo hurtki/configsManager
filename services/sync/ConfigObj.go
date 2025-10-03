@@ -28,6 +28,6 @@ func (p *DeterminedPath) BuildPath(homeDir string) string {
 func NewDeterminedPath(path, homeDir string) DeterminedPath {
 	return DeterminedPath{
 		Path:        strings.TrimPrefix(path, homeDir),
-		FromHomeDir: strings.HasSuffix(path, homeDir),
+		FromHomeDir: strings.HasPrefix(path, homeDir),
 	}
 }
