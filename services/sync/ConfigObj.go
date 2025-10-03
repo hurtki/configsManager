@@ -26,15 +26,8 @@ func (p *DeterminedPath) BuildPath(homeDir string) string {
 }
 
 func NewDeterminedPath(path, homeDir string) DeterminedPath {
-	if strings.HasPrefix(path, homeDir) {
-		return DeterminedPath{
-			Path:        strings.TrimPrefix(path, homeDir),
-			FromHomeDir: true,
-		}
-	} else {
-		return DeterminedPath{
-			Path:        path,
-			FromHomeDir: false,
-		}
+	return DeterminedPath{
+		Path:        strings.TrimPrefix(path, homeDir),
+		FromHomeDir: strings.HasSuffix(path, homeDir),
 	}
 }

@@ -28,6 +28,20 @@ type SyncResult struct {
 	Error     error
 }
 
+func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
+	token, err := authManager.GetToken("dropbox")
+	var cloud CloudManager = NoopCloudManager{
+		Error: err,
+	}
+	if err == nil {
+		cloud = NewCloudManagerImpl(token)
+	}
+	return &SyncServiceImpl{
+		AuthManager:  authManager,
+		CloudManager: cloud,
+	}
+}
+
 func (s *SyncServiceImpl) Auth(provider string) error {
 	return s.AuthManager.Authenticate(provider)
 }
@@ -145,18 +159,4 @@ func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult,
 		return nil, err
 	}
 	return results, nil
-}
-
-func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
-	token, err := authManager.GetToken("dropbox")
-	var cloud CloudManager = NoopCloudManager{
-		Error: err,
-	}
-	if err == nil {
-		cloud = NewCloudManagerImpl(token)
-	}
-	return &SyncServiceImpl{
-		AuthManager:  authManager,
-		CloudManager: cloud,
-	}
 }

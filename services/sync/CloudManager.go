@@ -6,9 +6,14 @@ import (
 )
 
 const (
+	// File that is being stored in cloud, contains all information about config's keys and their checksum
 	cloudManagerFileName = "cloud_manager.json"
 )
 
+// interface that represents entity to manage cloudConfigRegistry and update/download ConcurrentUpdateConfigs
+// So the higher entity ( its dependency is this interface ) should first update configs with ConcurrentUpdateConfigs
+// Then update CloudConfigRegistry with Sync results
+// If you are only downloading configs, no need to change cloudConfigRegistry!!!
 type CloudManager interface {
 	GetCloudInfo() (*CloudConfigRegistry, error)
 	SaveCloudConfigRegistry(cloudConfigRegistry CloudConfigRegistry) error

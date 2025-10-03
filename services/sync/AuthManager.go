@@ -32,6 +32,12 @@ type AuthManagerImpl struct {
 	TokenStore TokenStore
 }
 
+func NewAuthManagerImpl(TokenStore TokenStore) AuthManager {
+	return &AuthManagerImpl{
+		TokenStore: TokenStore,
+	}
+}
+
 func (m *AuthManagerImpl) randomString(length int) string {
 	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
@@ -133,12 +139,6 @@ func (m *AuthManagerImpl) RemoveToken(providerName string) error {
 
 func (m *AuthManagerImpl) RemoveAllTokens() error {
 	return m.TokenStore.DeleteToken("dropbox")
-}
-
-func NewAuthManagerImpl(TokenStore TokenStore) AuthManager {
-	return &AuthManagerImpl{
-		TokenStore: TokenStore,
-	}
 }
 
 // =================== WIP ====================

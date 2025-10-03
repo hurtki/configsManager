@@ -34,6 +34,25 @@ type TokenPair struct {
 	Refresh string `json:"refresh_token"`
 }
 
+func NewTokenStoreImpl() *TokenStoreImpl {
+	ring, _ := keyring.Open(keyring.Config{
+		AllowedBackends: []keyring.BackendType{
+			keyring.KWalletBackend,
+			keyring.SecretServiceBackend,
+			keyring.KeychainBackend,
+			keyring.PassBackend,
+			keyring.FileBackend,
+		},
+		ServiceName:      keyringServiceName,
+		FileDir:          "~/.config/configsManager/sync_tokens/",
+		FilePasswordFunc: keyring.TerminalPrompt,
+	})
+
+	return &TokenStoreImpl{
+		ring: ring,
+	}
+}
+
 func (s *TokenStoreImpl) SaveToken(providerName string, tokenPair TokenPair) error {
 	if providerName == "dropbox" {
 		if err := s.ring.Set(keyring.Item{
@@ -107,23 +126,4 @@ func (s *TokenStoreImpl) DeleteToken(providerName string) error {
 		return ErrAuthProviderDoesntExist
 	}
 
-}
-
-func NewTokenStoreImpl() *TokenStoreImpl {
-	ring, _ := keyring.Open(keyring.Config{
-		AllowedBackends: []keyring.BackendType{
-			keyring.KWalletBackend,
-			keyring.SecretServiceBackend,
-			keyring.KeychainBackend,
-			keyring.PassBackend,
-			keyring.FileBackend,
-		},
-		ServiceName:      keyringServiceName,
-		FileDir:          "~/.config/configsManager/sync_tokens/",
-		FilePasswordFunc: keyring.TerminalPrompt,
-	})
-
-	return &TokenStoreImpl{
-		ring: ring,
-	}
 }
