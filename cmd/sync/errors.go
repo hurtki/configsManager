@@ -7,4 +7,5 @@ var (
 	ErrPullAllFlagNotSupported          = errors.New("--all flag is not supported when one argument is provided")
 	ErrPullAllAndSpFlagsNotSupported    = errors.New("--all and --sp flags are not supported with two arguments provided")
 	ErrPullMoreThanTwoArgumentsProvided = errors.New("'cm sync pull' doesn't support more than 2 arguments")
+	ErrNoLocalConfigsForPush            = errors.New("no local configs for push ( try adding using 'cm add' )")
 )
