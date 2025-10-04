@@ -20,6 +20,7 @@ jobs:
           pacman -Syu --noconfirm base-devel git openssh
 
       
+      
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -33,7 +34,7 @@ jobs:
           ssh-keyscan -t rsa aur.archlinux.org >> ~/.ssh/known_hosts
           ssh-keyscan -t ecdsa aur.archlinux.org >> ~/.ssh/known_hosts
           cat ~/.ssh/known_hosts
-          git config --global core.sshCommand "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes"
+          git config --global core.sshCommand "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes"     
       - name: Debug SSH
         run: |
           ssh -vvv -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes aur@aur.archlinux.org || true
