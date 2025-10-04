@@ -1,4 +1,5 @@
-name: Release AUR (debug)
+
+name: Release AUR
 
 on:
   push:
@@ -25,37 +26,39 @@ jobs:
           env
           echo "=== WHOAMI ==="
           whoami
-          echo "=== HOME DIR ==="
-          ls -la $HOME
+          echo "=== HOME ==="
+          echo $HOME
+          echo "=== ROOT DIR ==="
+          ls -la /root || true
 
       - name: Setup SSH
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          chmod 700 ~/.ssh
-          # записываем хост-ключ AUR (жёстко)
-          echo "aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN" > ~/.ssh/known_hosts
+          mkdir -p /root/.ssh
+          echo "${{ secrets.AUR_SSH_KEY }}" > /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
+          chmod 700 /root/.ssh
+          # Жёстко пишем ключ AUR
+          echo "aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN" > /root/.ssh/known_hosts
 
-          echo "=== ~/.ssh permissions ==="
-          ls -la ~/.ssh
-          echo "=== ~/.ssh/id_ed25519 ==="
-          head -n 2 ~/.ssh/id_ed25519
-          echo "=== ~/.ssh/known_hosts ==="
-          cat ~/.ssh/known_hosts
+          echo "=== /root/.ssh contents ==="
+          ls -la /root/.ssh
+          echo "=== known_hosts ==="
+          cat /root/.ssh/known_hosts
 
-          # глобальный ssh для git
-          git config --global core.sshCommand "ssh -vvv -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes"
+          # Конфиг для git
+          git config --global core.sshCommand "ssh -vvv -i /root/.ssh/id_ed25519 -o StrictHostKeyChecking=yes"
+          git config --global user.name "github-bot"
+          git config --global user.email "bot@example.com"
 
-      - name: Test SSH with verbose logs
+      - name: Test SSH raw
         run: |
           echo "=== RAW SSH TEST ==="
-          ssh -vvv -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes aur@aur.archlinux.org || true
+          ssh -vvv -i /root/.ssh/id_ed25519 -o StrictHostKeyChecking=yes aur@aur.archlinux.org || true
 
-      - name: Test git over SSH
+      - name: Test git ls-remote
         run: |
           echo "=== GIT LS-REMOTE ==="
-          GIT_SSH_COMMAND="ssh -vvv -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes" \
+          GIT_SSH_COMMAND="ssh -vvv -i /root/.ssh/id_ed25519 -o StrictHostKeyChecking=yes" \
             git ls-remote ssh://aur@aur.archlinux.org/configsmanager.git || true
 
       - name: Clone AUR repo
@@ -67,14 +70,17 @@ jobs:
 
       - name: Update PKGBUILD
         run: |
-          cd aur-repo || exit 0
-          VERSION=${GITHUB_REF##*/}
-          VERSION=${VERSION#v}
-          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
-          makepkg --printsrcinfo > .SRCINFO
-          git config user.name "github-bot"
-          git config user.email "bot@example.com"
-          git add PKGBUILD .SRCINFO
-          git commit -m "Update to ${VERSION}" || true
-          git push || true
+          if [ -d aur-repo ]; then
+            cd aur-repo
+            VERSION=${GITHUB_REF##*/}
+            VERSION=${VERSION#v}
+            echo "Updating to version $VERSION"
+            sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
+            makepkg --printsrcinfo > .SRCINFO
+            git add PKGBUILD .SRCINFO
+            git commit -m "Update to ${VERSION}" || true
+            git push || true
+          else
+            echo "aur-repo not cloned, skipping PKGBUILD update"
+          fi
 
