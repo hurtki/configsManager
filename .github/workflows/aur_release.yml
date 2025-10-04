@@ -14,7 +14,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      - name: Deps install
+        run : |
+          pacman -Syu --noconfirm base-devel git openssh
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
