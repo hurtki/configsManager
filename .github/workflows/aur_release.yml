@@ -1,0 +1,39 @@
+name: Release AUR
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: aur-deployment
+    container: archlinux:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+      - name: Clone AUR repo
+        run: git clone ssh://aur@aur.archlinux.org/имя_пакета.git aur-repo
+
+      - name: Update PKGBUILD
+        run: |
+          cd aur-repo
+          VERSION=${GITHUB_REF##*/}
+          VERSION=${VERSION#v}
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
+          makepkg --printsrcinfo > .SRCINFO
+          git config user.name "github-bot"
+          git config user.email "bot@example.com"
+          git add PKGBUILD .SRCINFO
+          git commit -m "Update to ${VERSION}"
+          git push
