@@ -25,7 +25,7 @@ jobs:
           ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
 
       - name: Clone AUR repo
-        run: git clone ssh://aur@aur.archlinux.org/имя_пакета.git aur-repo
+        run: git clone ssh://aur@aur.archlinux.org/configsManager.git aur-repo
 
       - name: Update PKGBUILD
         run: |
