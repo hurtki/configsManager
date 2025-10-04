@@ -62,9 +62,13 @@ jobs:
         run: |
           if [ -d aur-repo ]; then
             
-            
+                        
             cd aur-repo
             
+            # to not make git panic from commit from other user
+            git config --global --add safe.directory $(pwd)
+
+
             VERSION=${GITHUB_REF##*/}
             VERSION=${VERSION#v}
             echo "Updating to version $VERSION"
