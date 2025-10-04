@@ -1,4 +1,3 @@
-
 name: Release AUR
 
 on:
@@ -20,24 +19,14 @@ jobs:
         run: |
           pacman -Syu --noconfirm base-devel git openssh
 
-      - name: Print env
-        run: |
-          echo "=== ENVIRONMENT VARIABLES ==="
-          env
-          echo "=== WHOAMI ==="
-          whoami
-          echo "=== HOME ==="
-          echo $HOME
-          echo "=== ROOT DIR ==="
-          ls -la /root || true
-
       - name: Setup SSH
         run: |
           mkdir -p /root/.ssh
+          # saving SSH private key to folder ( from github actions secrets )
           echo "${{ secrets.AUR_SSH_KEY }}" > /root/.ssh/id_ed25519
           chmod 600 /root/.ssh/id_ed25519
           chmod 700 /root/.ssh
-          # Жёстко пишем ключ AUR
+          # hardcore of ssh finger print
           echo "aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN" > /root/.ssh/known_hosts
 
           echo "=== /root/.ssh contents ==="
@@ -45,16 +34,17 @@ jobs:
           echo "=== known_hosts ==="
           cat /root/.ssh/known_hosts
 
-          # Конфиг для git
+          # cofig for git to use ssh key
           git config --global core.sshCommand "ssh -vvv -i /root/.ssh/id_ed25519 -o StrictHostKeyChecking=yes"
-          git config --global user.name "github-bot"
-          git config --global user.email "bot@example.com"
-
+          # name+email git configugration to do commit
+          git config --global user.name "git-hub-bot"
+          git config --global user.email "bot@configsManager.com"
+      # First ssh test to aur repo 
       - name: Test SSH raw
         run: |
           echo "=== RAW SSH TEST ==="
           ssh -vvv -i /root/.ssh/id_ed25519 -o StrictHostKeyChecking=yes aur@aur.archlinux.org || true
-
+      # Second test to AUR configsManager repo
       - name: Test git ls-remote
         run: |
           echo "=== GIT LS-REMOTE ==="
@@ -71,12 +61,21 @@ jobs:
       - name: Update PKGBUILD
         run: |
           if [ -d aur-repo ]; then
+            
+            
             cd aur-repo
+            
             VERSION=${GITHUB_REF##*/}
             VERSION=${VERSION#v}
             echo "Updating to version $VERSION"
             sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
-            makepkg --printsrcinfo > .SRCINFO
+            # create a new user to run 'makepkg'
+            useradd -m builder
+            chown -R builder .
+            
+            # generating .SRCINFO from builder  
+            sudo -u builder makepkg --printsrcinfo > .SRCINFO
+            
             git add PKGBUILD .SRCINFO
             git commit -m "Update to ${VERSION}" || true
             git push || true
