@@ -14,15 +14,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Deps install
-        run : |
+
+      - name: Install deps
+        run: |
           pacman -Syu --noconfirm base-devel git openssh
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          ssh-keyscan -t rsa,ecdsa,ed25519 aur.archlinux.org >> ~/.ssh/known_hosts
+          git config --global core.sshCommand "ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes"
+
+      - name: Test SSH connection
+        run: ssh -T aur@aur.archlinux.org || true
 
       - name: Clone AUR repo
         run: git clone ssh://aur@aur.archlinux.org/configsmanager.git aur-repo
@@ -39,3 +46,4 @@ jobs:
           git add PKGBUILD .SRCINFO
           git commit -m "Update to ${VERSION}"
           git push
+
