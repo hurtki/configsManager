@@ -17,6 +17,12 @@ Built with [Cobra CLI](https://github.com/spf13/cobra) library to provide a powe
 ### [Full documentaion](https://hurtki.github.io/configsManager/)
 
 # Fast start 
+### AUR ( Arch linux User Repository )
+```
+yay -S configsManager
+```
+> Other package managers coming soon ( homebrew, ..) 
+# Straight binary installation 
 ### Linux (x86_64 / AMD64)
 ```
 curl -L https://github.com/hurtki/configsManager/releases/latest/download/cm-linux-amd64 -o cm
