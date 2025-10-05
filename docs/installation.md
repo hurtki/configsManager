@@ -6,9 +6,13 @@
 * [Sync](sync.html)
 * [Configuration](cm_configuration.html)
 
-
-## Install
-
+# Fast start 
+### AUR ( Arch linux User Repository )
+```
+yay -S configsManager
+```
+> Other package managers coming soon ( homebrew, ..) 
+# Straight binary installation 
 ### Linux (x86_64 / AMD64)
 ```
 curl -L https://github.com/hurtki/configsManager/releases/latest/download/cm-linux-amd64 -o cm
@@ -41,4 +45,5 @@ sudo mv cm /usr/local/bin/
 cm init
 ```
 
-
+# Initializing 
+`cm init`
