@@ -21,7 +21,9 @@ Built with [Cobra CLI](https://github.com/spf13/cobra) library to provide a powe
 ```
 yay -S configsManager
 ```
+
 > Other package managers coming soon ( homebrew, ..) 
+
 # Straight binary installation 
 ### Linux (x86_64 / AMD64)
 ```

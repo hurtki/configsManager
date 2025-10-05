@@ -11,7 +11,9 @@
 ```
 yay -S configsManager
 ```
-> Other package managers coming soon ( homebrew, ..) 
+
+Other package managers coming soon ( homebrew, ..) 
+
 # Straight binary installation 
 ### Linux (x86_64 / AMD64)
 ```
