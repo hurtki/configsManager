@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/term"
 	"io"
 	"math/rand"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"golang.org/x/term"
 )
 
 var (
@@ -95,6 +96,10 @@ func (m *AuthManagerImpl) authenticateDropbox() error {
 			fmt.Println("error closing response body")
 		}
 	}()
+
+	if resp.StatusCode != 200 {
+		return ErrInvalidDropboxCode
+	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
