@@ -1,0 +1,23 @@
+version: 2
+project_name: cm
+builds:
+  - id: default
+    main: ./cmd/tool/main.go
+    binary: cm
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+archives:
+  - format: binary
+    name_template: "cm-{{ .Os }}-{{ .Arch }}"
+checksum:
+  name_template: "checksums.txt"
+release:
+  github:
+    owner: hurtki
+    name: configsManager
