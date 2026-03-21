@@ -3,9 +3,9 @@ package cmd_test
 import (
 	"testing"
 
-	"github.com/hurtki/configsManager/cmd"
+	"github.com/hurtki/configsManager/internal/cmd"
+	"github.com/hurtki/configsManager/internal/domain"
 	"github.com/hurtki/configsManager/mocks"
-	"github.com/hurtki/configsManager/services"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -14,15 +14,14 @@ func TestPathCmd_ValidPathAdding(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockAppConfigService := mocks.NewMockAppConfigService(ctrl)
 	mockConfigsListService := mocks.NewMockConfigsListService(ctrl)
 	key := "cm_config"
 	path := "some_path"
-	returnConfigsList := services.GetDefaultConfigsList("")
+	returnConfigsList := domain.GetDefaultConfigsList("")
 	returnConfigsList.SetConfig(key, path)
 	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
 
-	pathCmd := cmd.NewPathCmd(mockAppConfigService, mockConfigsListService)
+	pathCmd := cmd.NewPathCmd(mockConfigsListService)
 	args := []string{key}
 	err := pathCmd.Command.RunE(pathCmd.Command, args)
 	if err != nil {
@@ -36,11 +35,11 @@ func TestPathCmd_KeyNotFound_ReturnsError(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockConfigsList := mocks.NewMockConfigsListService(ctrl)
-	cl := services.GetDefaultConfigsList("")
+	cl := domain.GetDefaultConfigsList("")
 	cl.SetConfig("mykey", "/path/to/file")
 	mockConfigsList.EXPECT().Load().Return(cl, nil)
 
-	cmd := cmd.NewPathCmd(nil, mockConfigsList)
+	cmd := cmd.NewPathCmd(mockConfigsList)
 
 	err := cmd.Command.RunE(cmd.Command, []string{"not_exist_key"})
 	if err == nil || err.Error() != "key not found" {
@@ -54,11 +53,11 @@ func TestPathCmd_NotEnoughArgs_ReturnsError(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockConfigsList := mocks.NewMockConfigsListService(ctrl)
-	cl := services.GetDefaultConfigsList("")
+	cl := domain.GetDefaultConfigsList("")
 	cl.SetConfig("mykey", "/path/to/file")
 	mockConfigsList.EXPECT().Load().Return(cl, nil)
 
-	cmd := cmd.NewPathCmd(nil, mockConfigsList)
+	cmd := cmd.NewPathCmd(mockConfigsList)
 
 	err := cmd.Command.RunE(cmd.Command, []string{"not_exist_key"})
 	if err == nil || err.Error() != "key not found" {

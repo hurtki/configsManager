@@ -4,9 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/hurtki/configsManager/cmd"
+	"github.com/hurtki/configsManager/internal/cmd"
+	"github.com/hurtki/configsManager/internal/config"
+	"github.com/hurtki/configsManager/internal/domain"
 	"github.com/hurtki/configsManager/mocks"
-	"github.com/hurtki/configsManager/services"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -26,8 +27,8 @@ func TestAddCmd_ValidConfigAddNoParamWithPipe(t *testing.T) {
 	pipe := "config.json\n"
 
 	mockInputService.EXPECT().GetPipedInput().Return(pipe, true)
-	returnAppConfig := services.NewDefaultAppConfig()
-	returnConfigsList := services.GetDefaultConfigsList("")
+	returnAppConfig := config.NewDefaultAppConfig()
+	returnConfigsList := domain.GetDefaultConfigsList("")
 
 	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
 	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
@@ -80,8 +81,8 @@ func TestAddCmd_NotValidConfigAddNoParamPipeWithNotRealisticPath(t *testing.T) {
 	pipe := "/some_folder/some_config.json"
 
 	mockInputService.EXPECT().GetPipedInput().Return(pipe, true)
-	returnAppConfig := services.NewDefaultAppConfig()
-	returnConfigsList := services.GetDefaultConfigsList("")
+	returnAppConfig := config.NewDefaultAppConfig()
+	returnConfigsList := domain.GetDefaultConfigsList("")
 
 	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
 	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
@@ -113,8 +114,8 @@ func TestAddCmd_ValidConfigAddOneParamWithPipe(t *testing.T) {
 	pipe := "path/to/some_config.yaml"
 	mockInputService.EXPECT().GetPipedInput().Return(pipe, true)
 
-	returnAppConfig := services.NewDefaultAppConfig()
-	returnConfigsList := services.GetDefaultConfigsList("")
+	returnAppConfig := config.NewDefaultAppConfig()
+	returnConfigsList := domain.GetDefaultConfigsList("")
 
 	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
 	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
@@ -145,8 +146,8 @@ func TestAddCmd_ValidConfigAddOneParam(t *testing.T) {
 
 	args := []string{"config.json"}
 	mockInputService.EXPECT().GetPipedInput().Return("", false)
-	returnAppConfig := services.NewDefaultAppConfig()
-	returnConfigsList := services.GetDefaultConfigsList("")
+	returnAppConfig := config.NewDefaultAppConfig()
+	returnConfigsList := domain.GetDefaultConfigsList("")
 
 	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
 	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)
@@ -174,8 +175,8 @@ func TestAddCmd_ValidConfigAddTwoParam(t *testing.T) {
 	mockOsService := mocks.NewMockOsService(ctrl)
 
 	args := []string{"config", "config.json"}
-	returnAppConfig := services.NewDefaultAppConfig()
-	returnConfigsList := services.GetDefaultConfigsList("")
+	returnAppConfig := config.NewDefaultAppConfig()
+	returnConfigsList := domain.GetDefaultConfigsList("")
 	mockInputService.EXPECT().GetPipedInput().Return("", false)
 	mockAppConfigService.EXPECT().Load().Return(returnAppConfig, nil)
 	mockConfigsListService.EXPECT().Load().Return(returnConfigsList, nil)

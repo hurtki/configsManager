@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -46,7 +47,7 @@ func NewRmCmd(AppConfig AppConfigService, ConfigsListService ConfigsListService)
 
 	This command will remove the 'nginx' and 'django' keys and its values from your configuration file.
 	If the some of the keys does not exist, an error won't be shown and other keys will be deleted correctly.
-	
+
 	Use this command with caution — deleted keys cannot be recovered unless you re-add them manually.`,
 		RunE: rmCmd.run,
 	}

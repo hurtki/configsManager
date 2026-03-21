@@ -2,6 +2,7 @@ package sync_cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 

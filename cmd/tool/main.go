@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/hurtki/configsManager/cmd"
+	"github.com/hurtki/configsManager/internal/cmd"
 	services "github.com/hurtki/configsManager/internal/services"
 	sync_services "github.com/hurtki/configsManager/internal/services/sync"
 	"github.com/hurtki/configsManager/internal/services/sync/auth"

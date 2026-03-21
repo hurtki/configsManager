@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	sync_cmd "github.com/hurtki/configsManager/cmd/sync"
+	sync_cmd "github.com/hurtki/configsManager/internal/cmd/sync"
 	"github.com/spf13/cobra"
 )
 
