@@ -1,0 +1,84 @@
+name: Release AUR
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  github:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run GoReleaser via Docker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker run --rm --privileged \
+            -v $PWD:/repo \
+            -w /repo \
+            -e GITHUB_TOKEN \
+            goreleaser/goreleaser release
+
+
+  aur:
+    runs-on: ubuntu-latest
+    environment: aur-deployment
+    container: archlinux:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          pacman -Syu --noconfirm base-devel git openssh
+
+      - name: Setup SSH
+        run: |
+          mkdir -p /root/.ssh
+          # saving SSH private key to folder ( from github actions secrets )
+          echo "${{ secrets.AUR_SSH_KEY }}" > /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
+          chmod 700 /root/.ssh
+          # hardcore of ssh finger print
+          echo "aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN" > /root/.ssh/known_hosts
+
+
+          # cofig for git to use ssh key
+          git config --global core.sshCommand "ssh -vvv -i /root/.ssh/id_ed25519 -o StrictHostKeyChecking=yes"
+          # name+email git configugration to do commit
+          git config --global user.name "git-hub-bot"
+          git config --global user.email "bot@configsManager.com"
+
+      - name: Clone AUR repo
+        run: |
+          echo "=== TRY CLONE ==="
+          git clone ssh://aur@aur.archlinux.org/configsmanager.git aur-repo || true
+          echo "=== LIST AUR-REPO ==="
+
+      - name: Update PKGBUILD
+        run: |
+          if [ -d aur-repo ]; then
+            cd aur-repo
+            # to not make git panic from commit from other user
+            git config --global --add safe.directory $(pwd)
+
+            VERSION=${GITHUB_REF##*/}
+            VERSION=${VERSION#v}
+            echo "Updating to version $VERSION"
+            sed -i "s/^pkgver=.*/pkgver=${VERSION}/" PKGBUILD
+            # create a new user to run 'makepkg'
+            useradd -m builder
+            chown -R builder .
+            
+            # generating .SRCINFO from builder  
+            sudo -u builder makepkg --printsrcinfo > .SRCINFO
+            
+            git add PKGBUILD .SRCINFO
+            git commit -m "Update to ${VERSION}" || true
+            git push || true
+          else
+            echo "aur-repo not cloned, skipping PKGBUILD update"
+          fi
+
