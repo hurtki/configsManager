@@ -8,11 +8,6 @@ import (
 	"strings"
 )
 
-type InputService interface {
-	AskUser(prompt string, options []string) (string, error)
-	GetPipedInput() (string, bool)
-}
-
 type StdInputService struct {
 	reader io.Reader
 }

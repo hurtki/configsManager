@@ -4,18 +4,15 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+
+	"github.com/hurtki/configsManager/internal/config"
 )
 
-type AppConfigService interface {
-	Load() (*AppConfig, error)
-	Save(*AppConfig) error
+type AppConfigService struct {
 }
 
-type AppConfigServiceImpl struct {
-}
-
-func NewAppConfigServiceImpl() *AppConfigServiceImpl {
-	return &AppConfigServiceImpl{}
+func NewAppConfigService() *AppConfigService {
+	return &AppConfigService{}
 }
 
 const (
@@ -23,7 +20,7 @@ const (
 	configFileName = "configsManager.json"
 )
 
-func (c *AppConfigServiceImpl) getConfigDir() (string, error) {
+func (c *AppConfigService) getConfigDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -31,7 +28,7 @@ func (c *AppConfigServiceImpl) getConfigDir() (string, error) {
 	return filepath.Join(homeDir, AppDir), nil
 }
 
-func (c *AppConfigServiceImpl) getConfigPath() (string, error) {
+func (c *AppConfigService) getConfigPath() (string, error) {
 	configDir, err := c.getConfigDir()
 	if err != nil {
 		return "", err
@@ -39,14 +36,14 @@ func (c *AppConfigServiceImpl) getConfigPath() (string, error) {
 	return filepath.Join(configDir, configFileName), nil
 }
 
-func (c *AppConfigServiceImpl) Load() (*AppConfig, error) {
+func (c *AppConfigService) Load() (*config.AppConfig, error) {
 	configPath, err := c.getConfigPath()
 	if err != nil {
 		return nil, err
 	}
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		return &defaultConfig, nil
+		return config.NewDefaultAppConfig(), nil
 	}
 
 	file, err := os.ReadFile(configPath)
@@ -55,14 +52,14 @@ func (c *AppConfigServiceImpl) Load() (*AppConfig, error) {
 		return nil, err
 	}
 
-	var config AppConfig
+	var config config.AppConfig
 
 	if err := json.Unmarshal(file, &config); err != nil {
 		return nil, err
 	}
 
 	// validating and fil
-	if config.validateAppConfig() {
+	if config.ValidateAppConfig() {
 		if err := c.Save(&config); err != nil {
 			return nil, err
 		}
@@ -71,7 +68,7 @@ func (c *AppConfigServiceImpl) Load() (*AppConfig, error) {
 	return &config, nil
 }
 
-func (c *AppConfigServiceImpl) Save(cfg *AppConfig) error {
+func (c *AppConfigService) Save(cfg *config.AppConfig) error {
 	configDir, err := c.getConfigDir()
 	if err != nil {
 		return err

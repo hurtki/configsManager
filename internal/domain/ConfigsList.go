@@ -1,23 +1,29 @@
-package services
+package domain
 
 type ConfigsList struct {
-	configs map[string]string
+	Configs map[string]string
+}
+
+func NewConfigsList(cfgs map[string]string) *ConfigsList {
+	return &ConfigsList{
+		Configs: cfgs,
+	}
 }
 
 func GetDefaultConfigsList(pathToAppConfig string) *ConfigsList {
 	configs := make(map[string]string)
 	configs["cm_config"] = pathToAppConfig
 	return &ConfigsList{
-		configs: configs,
+		Configs: configs,
 	}
 }
 
 func (cl *ConfigsList) SetConfig(name, path string) {
-	cl.configs[name] = path
+	cl.Configs[name] = path
 }
 
 func (cl *ConfigsList) GetAllKeys() []string {
-	configs := cl.configs
+	configs := cl.Configs
 	keys := make([]string, 0, len(configs))
 	for k := range configs {
 		keys = append(keys, k)
@@ -26,7 +32,7 @@ func (cl *ConfigsList) GetAllKeys() []string {
 }
 
 func (cl *ConfigsList) GetPath(name string) (string, bool) {
-	val, ok := cl.configs[name]
+	val, ok := cl.Configs[name]
 	if ok {
 		return val, true
 	} else {
@@ -35,10 +41,10 @@ func (cl *ConfigsList) GetPath(name string) (string, bool) {
 }
 
 func (cl *ConfigsList) RemoveConfig(name string) {
-	delete(cl.configs, name)
+	delete(cl.Configs, name)
 }
 
 func (cl *ConfigsList) HasKey(name string) bool {
-	_, ok := cl.configs[name]
+	_, ok := cl.Configs[name]
 	return ok
 }

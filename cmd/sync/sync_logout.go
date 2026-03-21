@@ -2,13 +2,11 @@ package sync_cmd
 
 import (
 	"fmt"
-
-	sync_services "github.com/hurtki/configsManager/services/sync"
 	"github.com/spf13/cobra"
 )
 
 type SyncLogoutCmd struct {
-	syncService sync_services.SyncService
+	syncService SyncService
 	Command     *cobra.Command
 	Dropbox     bool
 }
@@ -29,7 +27,7 @@ func (c *SyncLogoutCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewSyncLogoutCmd(syncService sync_services.SyncService) *SyncLogoutCmd {
+func NewSyncLogoutCmd(syncService SyncService) *SyncLogoutCmd {
 	syncLogoutCmd := SyncLogoutCmd{
 		syncService: syncService,
 	}

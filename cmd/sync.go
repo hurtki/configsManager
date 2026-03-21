@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"github.com/hurtki/configsManager/cmd/sync"
-	"github.com/hurtki/configsManager/services"
-	"github.com/hurtki/configsManager/services/sync"
+	sync_cmd "github.com/hurtki/configsManager/cmd/sync"
 	"github.com/spf13/cobra"
 )
 
@@ -11,10 +9,10 @@ type SyncCmd struct {
 	Command *cobra.Command
 }
 
-func NewSyncCmd(AppConfigService services.AppConfigService,
-	ConfigsListService services.ConfigsListService,
-	OsService services.OsService,
-	SyncService sync_services.SyncService,
+func NewSyncCmd(AppConfigService AppConfigService,
+	ConfigsListService ConfigsListService,
+	OsService OsService,
+	SyncService sync_cmd.SyncService,
 ) *SyncCmd {
 	syncCmd := SyncCmd{}
 

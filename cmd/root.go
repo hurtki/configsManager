@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"github.com/hurtki/configsManager/services"
-	syncServices "github.com/hurtki/configsManager/services/sync"
+	sync_cmd "github.com/hurtki/configsManager/cmd/sync"
 	"github.com/spf13/cobra"
 )
 
@@ -10,7 +9,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "cm",
 	Short: "A CLI tool to manage configuration file paths by keys",
-	Long: `ConfigManager is a simple and efficient CLI application that helps you 
+	Long: `ConfigManager is a simple and efficient CLI application that helps you
 manage your configuration files by associating keys with file paths.
 
 With configManager, you can:
@@ -43,18 +42,18 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-func NewRootCmd(AppConfigService services.AppConfigService,
-	InputService services.InputService,
-	ConfigsListService services.ConfigsListService,
-	OsService services.OsService,
-	SyncService syncServices.SyncService,
+func NewRootCmd(AppConfigService AppConfigService,
+	InputService InputService,
+	ConfigsListService ConfigsListService,
+	OsService OsService,
+	SyncService sync_cmd.SyncService,
 ) *cobra.Command {
 	// creating commands with dependencies
 	addCmd := NewAddCmd(AppConfigService, InputService, ConfigsListService, OsService)
 	catCmd := NewCatCmd(AppConfigService, ConfigsListService, OsService)
 	keysCmd := NewKeysCmd(AppConfigService, ConfigsListService)
 	openCmd := NewOpenCmd(AppConfigService, ConfigsListService, OsService)
-	pathCmd := NewPathCmd(AppConfigService, ConfigsListService)
+	pathCmd := NewPathCmd(ConfigsListService)
 	rmCmd := NewRmCmd(AppConfigService, ConfigsListService)
 	initCmd := NewInitCmd(AppConfigService, ConfigsListService)
 	syncCmd := NewSyncCmd(AppConfigService, ConfigsListService, OsService, SyncService)

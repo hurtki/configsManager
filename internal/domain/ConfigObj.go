@@ -1,4 +1,4 @@
-package sync_services
+package domain
 
 import (
 	"path/filepath"

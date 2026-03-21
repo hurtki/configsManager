@@ -2,14 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/hurtki/configsManager/services"
+
 	"github.com/spf13/cobra"
 )
 
 type PathCmd struct {
 	Command            *cobra.Command
-	AppConfigService   services.AppConfigService
-	ConfigsListService services.ConfigsListService
+	ConfigsListService ConfigsListService
 }
 
 func (c *PathCmd) run(cmd *cobra.Command, args []string) error {
@@ -29,23 +28,22 @@ func (c *PathCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewPathCmd(AppConfig services.AppConfigService, ConfigsListService services.ConfigsListService) PathCmd {
+func NewPathCmd(ConfigsListService ConfigsListService) PathCmd {
 	pathCmd := PathCmd{
-		AppConfigService:   AppConfig,
 		ConfigsListService: ConfigsListService,
 	}
 
 	cmd := &cobra.Command{
 		Use:   "path [key]",
 		Short: "Retrieve the file path associated with a configuration key",
-		Long: `The 'path' command fetches the absolute file path stored under the given configuration key 
+		Long: `The 'path' command fetches the absolute file path stored under the given configuration key
 from the user's saved configuration list.
 
 Usage examples:
   cm path myconfig      # Prints the file path associated with "myconfig"
   cm path cm_config     # Prints the default configManager config path
 
-This command helps you quickly locate configuration files by their keys, making management easier 
+This command helps you quickly locate configuration files by their keys, making management easier
 and more efficient.`,
 		RunE: pathCmd.run,
 	}

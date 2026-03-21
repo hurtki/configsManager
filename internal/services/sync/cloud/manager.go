@@ -1,8 +1,11 @@
-package sync_services
+package cloud
 
 import (
 	"encoding/json"
 	"sync"
+
+	"github.com/hurtki/configsManager/internal/domain"
+	sync_services "github.com/hurtki/configsManager/internal/services/sync"
 )
 
 const (
@@ -10,31 +13,19 @@ const (
 	cloudManagerFileName = "cloud_manager.json"
 )
 
-// interface that represents entity to manage cloudConfigRegistry and update/download ConcurrentUpdateConfigs
-// So the higher entity ( its dependency is this interface ) should first update configs with ConcurrentUpdateConfigs
-// Then update CloudConfigRegistry with Sync results
-// If you are only downloading configs, no need to change cloudConfigRegistry!!!
-type CloudManager interface {
-	GetCloudInfo() (*CloudConfigRegistry, error)
-	SaveCloudConfigRegistry(cloudConfigRegistry CloudConfigRegistry) error
-
-	ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*SyncResult, error)
-	DownloadConfig(key string) (*ConfigObj, error)
-}
-
-type CloudManagerImpl struct {
+type CloudManager struct {
 	Provider Provider
 }
 
-func NewCloudManagerImpl(token string) *CloudManagerImpl {
-	return &CloudManagerImpl{
+func NewCloudManager(token string) *CloudManager {
+	return &CloudManager{
 		Provider: NewDropboxProvider(token),
 	}
 }
-func (m *CloudManagerImpl) GetCloudInfo() (*CloudConfigRegistry, error) {
+func (m *CloudManager) GetCloudInfo() (*domain.CloudConfigRegistry, error) {
 	data, err := m.Provider.Download(cloudManagerFileName)
 	if err == ErrFileDoesntExist {
-		defaultRegistry := CloudConfigRegistry{
+		defaultRegistry := domain.CloudConfigRegistry{
 			Configs: make(map[string][32]byte),
 		}
 		bytes, err := json.Marshal(defaultRegistry)
@@ -49,7 +40,7 @@ func (m *CloudManagerImpl) GetCloudInfo() (*CloudConfigRegistry, error) {
 		return nil, err
 	}
 
-	var configRegistry CloudConfigRegistry
+	var configRegistry domain.CloudConfigRegistry
 	if err := json.Unmarshal(data, &configRegistry); err != nil {
 		return nil, err
 	}
@@ -60,7 +51,7 @@ func (m *CloudManagerImpl) GetCloudInfo() (*CloudConfigRegistry, error) {
 	return &configRegistry, nil
 }
 
-func (m *CloudManagerImpl) SaveCloudConfigRegistry(cloudConfigRegistry CloudConfigRegistry) error {
+func (m *CloudManager) SaveCloudConfigRegistry(cloudConfigRegistry domain.CloudConfigRegistry) error {
 	data, err := json.Marshal(cloudConfigRegistry)
 	if err != nil {
 		return err
@@ -68,7 +59,7 @@ func (m *CloudManagerImpl) SaveCloudConfigRegistry(cloudConfigRegistry CloudConf
 	return m.Provider.Upload(cloudManagerFileName, data)
 }
 
-func (m *CloudManagerImpl) UpdateConfig(configObj ConfigObj) error {
+func (m *CloudManager) UpdateConfig(configObj domain.ConfigObj) error {
 
 	data, err := json.Marshal(configObj)
 
@@ -83,27 +74,27 @@ func (m *CloudManagerImpl) UpdateConfig(configObj ConfigObj) error {
 	return nil
 }
 
-func (m CloudManagerImpl) ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*SyncResult, error) {
+func (m CloudManager) ConcurrentUpdateConfigs(configs []*domain.ConfigObj) ([]*sync_services.SyncResult, error) {
 
-	results := []*SyncResult{}
-	resChan := make(chan SyncResult)
+	results := []*sync_services.SyncResult{}
+	resChan := make(chan sync_services.SyncResult)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(configs))
 
 	for _, cfg := range configs {
-		go func(cfg *ConfigObj) {
+		go func(cfg *domain.ConfigObj) {
 			defer wg.Done()
 			data, err := json.Marshal(cfg)
 
 			if err != nil {
-				resChan <- SyncResult{
+				resChan <- sync_services.SyncResult{
 					ConfigObj: cfg,
 					Error:     err,
 				}
 				return
 			}
 
-			resChan <- SyncResult{
+			resChan <- sync_services.SyncResult{
 				ConfigObj: cfg,
 				Error:     m.Provider.Upload(cfg.KeyName+".json", data),
 			}
@@ -122,12 +113,12 @@ func (m CloudManagerImpl) ConcurrentUpdateConfigs(configs []*ConfigObj) ([]*Sync
 	return results, nil
 }
 
-func (m *CloudManagerImpl) DownloadConfig(key string) (*ConfigObj, error) {
+func (m *CloudManager) DownloadConfig(key string) (*domain.ConfigObj, error) {
 	data, err := m.Provider.Download(key + ".json")
 	if err != nil {
 		return nil, err
 	}
-	var configObj ConfigObj
+	var configObj domain.ConfigObj
 	if err := json.Unmarshal(data, &configObj); err != nil {
 		return nil, err
 	}

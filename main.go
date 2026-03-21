@@ -6,21 +6,39 @@ import (
 	"os"
 
 	"github.com/hurtki/configsManager/cmd"
-	"github.com/hurtki/configsManager/services"
-	syncServices "github.com/hurtki/configsManager/services/sync"
+	services "github.com/hurtki/configsManager/internal/services"
+	sync_services "github.com/hurtki/configsManager/internal/services/sync"
+	"github.com/hurtki/configsManager/internal/services/sync/auth"
+	"github.com/hurtki/configsManager/internal/services/sync/cloud"
 )
 
 func main() {
 	// making dependencies
-	AppConfigService := services.NewAppConfigServiceImpl()
-	StdInputService := services.NewStdInputService()
-	ConfigsListService := services.NewConfigsListServiceImpl()
-	OsService := services.NewOsServiceImpl()
-	TokenStore := syncServices.NewTokenStoreImpl()
-	AuthManager := syncServices.NewAuthManagerImpl(TokenStore)
-	SyncService := syncServices.NewSyncServiceImpl(AuthManager)
+	appConfigService := services.NewAppConfigService()
+	stdInputService := services.NewStdInputService()
+	configsListService := services.NewConfigsListService()
+	osService := services.NewOsService()
 
-	rootCmd := cmd.NewRootCmd(AppConfigService, StdInputService, ConfigsListService, OsService, SyncService)
+	tokenStore := auth.NewTokenStoreImpl()
+	authManager := auth.NewAuthManager(tokenStore)
+
+	var cloudManager sync_services.CloudManager
+	token, err := authManager.GetToken("dropbox")
+
+	if err == nil {
+		cloudManager = cloud.NewCloudManager(token)
+	} else {
+		cloudManager = cloud.NoopCloudManager{Error: err}
+	}
+
+	syncService := sync_services.NewSyncService(authManager, cloudManager)
+
+	rootCmd := cmd.NewRootCmd(appConfigService,
+		stdInputService,
+		configsListService,
+		osService,
+		syncService,
+	)
 
 	if err := rootCmd.Execute(); err != nil {
 		if errors.Is(err, cmd.ErrUserAborted) {

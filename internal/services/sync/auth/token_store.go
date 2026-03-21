@@ -1,4 +1,4 @@
-package sync_services
+package auth
 
 import (
 	"strings"

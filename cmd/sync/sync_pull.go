@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/hurtki/configsManager/services"
-	"github.com/hurtki/configsManager/services/sync"
 	"github.com/spf13/cobra"
 )
 
 type SyncPullCmd struct {
-	syncService sync_services.SyncService
-	osService   services.OsService
+	syncService SyncService
+	osService   OsService
 	Command     *cobra.Command
 	All         bool
 	SamePlace   bool
@@ -97,14 +95,14 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewSyncPullCmd(syncService sync_services.SyncService, osService services.OsService) *SyncPullCmd {
+func NewSyncPullCmd(syncService SyncService, osService OsService) *SyncPullCmd {
 	syncPullCmd := &SyncPullCmd{syncService: syncService, osService: osService}
 
 	cmd := &cobra.Command{
 		Use:   "pull",
 		Short: "Pulls configs from your cloud",
-		Long: `Pull your configuration files from the cloud. 
-You can pull a single config, all configs, to a specific folder, 
+		Long: `Pull your configuration files from the cloud.
+You can pull a single config, all configs, to a specific folder,
 or restore them to their original paths.`,
 		RunE: syncPullCmd.run,
 	}

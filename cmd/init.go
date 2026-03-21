@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/hurtki/configsManager/services"
+
+	"github.com/hurtki/configsManager/internal/services"
 	"github.com/spf13/cobra"
 )
 
 type InitCmd struct {
 	Command            *cobra.Command
-	AppConfigService   services.AppConfigService
-	ConfigsListService services.ConfigsListService
+	AppConfigService   AppConfigService
+	ConfigsListService ConfigsListService
 }
 
 func (c *InitCmd) run(cmd *cobra.Command, args []string) error {
@@ -37,8 +38,8 @@ func (c *InitCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewInitCmd(AppConfig services.AppConfigService,
-	ConfigsListService services.ConfigsListService,
+func NewInitCmd(AppConfig AppConfigService,
+	ConfigsListService ConfigsListService,
 ) InitCmd {
 	InitCmd := InitCmd{
 		AppConfigService:   AppConfig,
@@ -48,10 +49,10 @@ func NewInitCmd(AppConfig services.AppConfigService,
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Initializes anapp folder",
-		Long: `The 'init' command initializes the configuration management folder structure 
+		Long: `The 'init' command initializes the configuration management folder structure
 and creates default configuration files if they do not exist.
 
-This is the first command that should be run before using other commands 
+This is the first command that should be run before using other commands
 like 'add', 'open', or 'edit', since it sets up the required files and directories.
 
 Usage example:

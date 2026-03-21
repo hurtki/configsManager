@@ -7,26 +7,22 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-)
 
-type ConfigsListService interface {
-	Load() (*ConfigsList, error)
-	Save(*ConfigsList) error
-	GenerateUniqueKeyForPath(path string) (string, error)
-}
+	"github.com/hurtki/configsManager/internal/domain"
+)
 
 const (
 	configsListFileName = "configs_list.json"
 )
 
-type ConfigsListServiceImpl struct {
+type ConfigsListService struct {
 }
 
-func NewConfigsListServiceImpl() *ConfigsListServiceImpl {
-	return &ConfigsListServiceImpl{}
+func NewConfigsListService() *ConfigsListService {
+	return &ConfigsListService{}
 }
 
-func (c *ConfigsListServiceImpl) getConfigsListDir() (string, error) {
+func (c *ConfigsListService) getConfigsListDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -34,7 +30,7 @@ func (c *ConfigsListServiceImpl) getConfigsListDir() (string, error) {
 	return filepath.Join(homeDir, AppDir), nil
 }
 
-func (c *ConfigsListServiceImpl) getConfigsListPath() (string, error) {
+func (c *ConfigsListService) getConfigsListPath() (string, error) {
 	configDir, err := c.getConfigsListDir()
 	if err != nil {
 		return "", err
@@ -42,7 +38,7 @@ func (c *ConfigsListServiceImpl) getConfigsListPath() (string, error) {
 	return filepath.Join(configDir, configsListFileName), nil
 }
 
-func (s *ConfigsListServiceImpl) Load() (*ConfigsList, error) {
+func (s *ConfigsListService) Load() (*domain.ConfigsList, error) {
 	configsListPath, err := s.getConfigsListPath()
 	if err != nil {
 		return nil, err
@@ -54,7 +50,7 @@ func (s *ConfigsListServiceImpl) Load() (*ConfigsList, error) {
 			return nil, err
 		}
 		AppConfigPath := filepath.Join(configsListDir, configFileName)
-		return GetDefaultConfigsList(AppConfigPath), nil
+		return domain.GetDefaultConfigsList(AppConfigPath), nil
 	}
 
 	file, err := os.ReadFile(configsListPath)
@@ -63,16 +59,16 @@ func (s *ConfigsListServiceImpl) Load() (*ConfigsList, error) {
 		return nil, err
 	}
 
-	var configsList ConfigsList
+	var cfgs map[string]string
 
-	if err := json.Unmarshal(file, &configsList.configs); err != nil {
+	if err := json.Unmarshal(file, &cfgs); err != nil {
 		return nil, err
 	}
 
-	return &configsList, nil
+	return domain.NewConfigsList(cfgs), nil
 }
 
-func (s *ConfigsListServiceImpl) Save(cfgList *ConfigsList) error {
+func (s *ConfigsListService) Save(cfgList *domain.ConfigsList) error {
 	configsListDir, err := s.getConfigsListDir()
 	if err != nil {
 		return err
@@ -86,7 +82,7 @@ func (s *ConfigsListServiceImpl) Save(cfgList *ConfigsList) error {
 		return err
 	}
 
-	jsonData, err := json.MarshalIndent(cfgList.configs, "", "  ")
+	jsonData, err := json.MarshalIndent(cfgList.Configs, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -95,7 +91,7 @@ func (s *ConfigsListServiceImpl) Save(cfgList *ConfigsList) error {
 	return err
 }
 
-func (s *ConfigsListServiceImpl) GenerateUniqueKeyForPath(path string) (string, error) {
+func (s *ConfigsListService) GenerateUniqueKeyForPath(path string) (string, error) {
 	cfgList, err := s.Load()
 	if err != nil {
 		return "", err

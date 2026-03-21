@@ -3,57 +3,60 @@ package sync_services
 import (
 	"crypto/sha256"
 	"sync"
+
+	"github.com/hurtki/configsManager/internal/domain"
 )
 
-type SyncService interface {
-	// Authorization
-	Auth(provider string) error
-	Logout(provider string) error // blank provider param => logout for everyone
-
-	// Pulling
-	PullAll() ([]SyncResult, error)
-	PullOne(key string) SyncResult
-
-	// Pushing
-	Push(configs []*ConfigObj, force bool) ([]*SyncResult, error)
+type AuthManager interface {
+	Authenticate(providerName string) error
+	GetToken(providerName string) (string, error)
+	RemoveToken(providerName string) error
+	RemoveAllTokens() error
+	// WIP
+	// RefreshToken(providerName string) error
 }
 
-type SyncServiceImpl struct {
+// interface that represents entity to manage cloudConfigRegistry and update/download ConcurrentUpdateConfigs
+// So the higher entity ( its dependency is this interface ) should first update configs with ConcurrentUpdateConfigs
+// Then update CloudConfigRegistry with Sync results
+// If you are only downloading configs, no need to change cloudConfigRegistry!!!
+type CloudManager interface {
+	GetCloudInfo() (*domain.CloudConfigRegistry, error)
+	SaveCloudConfigRegistry(cloudConfigRegistry domain.CloudConfigRegistry) error
+
+	ConcurrentUpdateConfigs(configs []*domain.ConfigObj) ([]*SyncResult, error)
+	DownloadConfig(key string) (*domain.ConfigObj, error)
+}
+
+type SyncService struct {
 	CloudManager CloudManager
 	AuthManager  AuthManager
 }
 
 type SyncResult struct {
-	ConfigObj *ConfigObj
+	ConfigObj *domain.ConfigObj
 	Error     error
 }
 
-func NewSyncServiceImpl(authManager AuthManager) *SyncServiceImpl {
-	token, err := authManager.GetToken("dropbox")
-	var cloud CloudManager = NoopCloudManager{
-		Error: err,
-	}
-	if err == nil {
-		cloud = NewCloudManagerImpl(token)
-	}
-	return &SyncServiceImpl{
+func NewSyncService(authManager AuthManager, cloudManager CloudManager) *SyncService {
+	return &SyncService{
+		CloudManager: cloudManager,
 		AuthManager:  authManager,
-		CloudManager: cloud,
 	}
 }
 
-func (s *SyncServiceImpl) Auth(provider string) error {
+func (s *SyncService) Auth(provider string) error {
 	return s.AuthManager.Authenticate(provider)
 }
 
-func (s *SyncServiceImpl) Logout(provider string) error {
+func (s *SyncService) Logout(provider string) error {
 	if provider == "" {
 		return s.AuthManager.RemoveAllTokens()
 	}
 	return s.AuthManager.RemoveToken(provider)
 }
 
-func (s *SyncServiceImpl) PullOne(key string) SyncResult {
+func (s *SyncService) PullOne(key string) SyncResult {
 	configRegistry, err := s.CloudManager.GetCloudInfo()
 	if err != nil {
 		return SyncResult{
@@ -72,7 +75,7 @@ func (s *SyncServiceImpl) PullOne(key string) SyncResult {
 	return SyncResult{ConfigObj: cfgObj, Error: err}
 }
 
-func (s *SyncServiceImpl) PullAll() ([]SyncResult, error) {
+func (s *SyncService) PullAll() ([]SyncResult, error) {
 	configRegistry, err := s.CloudManager.GetCloudInfo()
 	if err != nil {
 		return nil, err
@@ -98,14 +101,14 @@ func (s *SyncServiceImpl) PullAll() ([]SyncResult, error) {
 	}
 	return results, nil
 }
-func (s *SyncServiceImpl) Push(configs []*ConfigObj, force bool) ([]*SyncResult, error) {
+func (s *SyncService) Push(configs []*domain.ConfigObj, force bool) ([]*SyncResult, error) {
 	cloudConfigRegistry, err := s.CloudManager.GetCloudInfo()
 
 	if err != nil {
 		return nil, err
 	}
 
-	filteredConfigs := []*ConfigObj{}
+	filteredConfigs := []*domain.ConfigObj{}
 
 	localKeys := make(map[string]struct{})
 	for _, cfg := range configs {

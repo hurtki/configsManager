@@ -7,26 +7,16 @@ import (
 	"path/filepath"
 )
 
-type OsService interface {
-	GetFileData(path string) ([]byte, error)
-	OpenInEditor(editor, path string) error
-	FileExists(path string) (bool, error)
-	GetAbsolutePath(path string) (string, error)
-	MakePathAndFile(path string) error
-	WriteFile(path string, data []byte) error
-	GetHomeDir() (string, error)
-}
+type OsService struct{}
 
-type OsServiceImpl struct{}
-
-func NewOsServiceImpl() *OsServiceImpl {
-	return &OsServiceImpl{}
+func NewOsService() *OsService {
+	return &OsService{}
 }
 
 // MakePathAndFile creates all directories in the given path if they do not exist,
 // and then creates or truncates the file at the end of the path.
 // Returns an error if any operation fails.
-func (s *OsServiceImpl) MakePathAndFile(path string) error {
+func (s *OsService) MakePathAndFile(path string) error {
 	dir := filepath.Dir(path)
 	// creating all the folders
 	if err := os.MkdirAll(dir, 0755); err != nil {
@@ -46,7 +36,7 @@ func (s *OsServiceImpl) MakePathAndFile(path string) error {
 	return nil
 }
 
-func (s *OsServiceImpl) GetFileData(path string) ([]byte, error) {
+func (s *OsService) GetFileData(path string) ([]byte, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -54,7 +44,7 @@ func (s *OsServiceImpl) GetFileData(path string) ([]byte, error) {
 	return data, nil
 }
 
-func (s *OsServiceImpl) OpenInEditor(editor, path string) error {
+func (s *OsService) OpenInEditor(editor, path string) error {
 	cmd := exec.Command(editor, path)
 
 	cmd.Stdin = os.Stdin
@@ -66,7 +56,7 @@ func (s *OsServiceImpl) OpenInEditor(editor, path string) error {
 	return err
 }
 
-func (s *OsServiceImpl) FileExists(path string) (bool, error) {
+func (s *OsService) FileExists(path string) (bool, error) {
 	info, err := os.Stat(path)
 	if err == nil {
 		return !info.IsDir(), nil
@@ -77,10 +67,10 @@ func (s *OsServiceImpl) FileExists(path string) (bool, error) {
 	return false, err
 }
 
-func (s *OsServiceImpl) GetAbsolutePath(path string) (string, error) {
+func (s *OsService) GetAbsolutePath(path string) (string, error) {
 	return filepath.Abs(path)
 }
-func (s *OsServiceImpl) WriteFile(path string, data []byte) error {
+func (s *OsService) WriteFile(path string, data []byte) error {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
@@ -89,6 +79,6 @@ func (s *OsServiceImpl) WriteFile(path string, data []byte) error {
 	return os.WriteFile(path, data, 0644)
 }
 
-func (s *OsServiceImpl) GetHomeDir() (string, error) {
+func (s *OsService) GetHomeDir() (string, error) {
 	return os.UserHomeDir()
 }

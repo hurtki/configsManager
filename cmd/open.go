@@ -3,15 +3,14 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type OpenCmd struct {
 	Command            *cobra.Command
-	AppConfigService   services.AppConfigService
-	OsService          services.OsService
-	ConfigsListService services.ConfigsListService
+	AppConfigService   AppConfigService
+	OsService          OsService
+	ConfigsListService ConfigsListService
 }
 
 func (c *OpenCmd) run(cmd *cobra.Command, args []string) error {
@@ -33,9 +32,9 @@ func (c *OpenCmd) run(cmd *cobra.Command, args []string) error {
 	return c.OsService.OpenInEditor(*editor, path)
 }
 
-func NewOpenCmd(AppConfig services.AppConfigService,
-	ConfigsListService services.ConfigsListService,
-	OsService services.OsService,
+func NewOpenCmd(AppConfig AppConfigService,
+	ConfigsListService ConfigsListService,
+	OsService OsService,
 ) OpenCmd {
 	openCmd := OpenCmd{
 		AppConfigService:   AppConfig,
@@ -46,7 +45,7 @@ func NewOpenCmd(AppConfig services.AppConfigService,
 	cmd := &cobra.Command{
 		Use:   "open [filename]",
 		Short: "Opens a config by name",
-		Long: `The 'open' command launches the default text editor specified in the application configuration 
+		Long: `The 'open' command launches the default text editor specified in the application configuration
 		to open the configuration file associated with the provided key.
 
 		This is useful for quickly editing or viewing the content of config files without manually locating them.
@@ -54,7 +53,7 @@ func NewOpenCmd(AppConfig services.AppConfigService,
 		Usage example:
 		cm open myconfig
 
-		This command will open the file linked to 'myconfig' in the configured editor, 
+		This command will open the file linked to 'myconfig' in the configured editor,
 		you can configure it in app config by running 'cm open cm_config'`,
 		RunE: openCmd.run,
 	}

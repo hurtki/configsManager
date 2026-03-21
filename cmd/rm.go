@@ -2,14 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type RmCmd struct {
 	Command            *cobra.Command
-	AppConfigService   services.AppConfigService
-	ConfigsListService services.ConfigsListService
+	AppConfigService   AppConfigService
+	ConfigsListService ConfigsListService
 }
 
 func (c *RmCmd) run(cmd *cobra.Command, args []string) error {
@@ -30,7 +29,7 @@ func (c *RmCmd) run(cmd *cobra.Command, args []string) error {
 
 }
 
-func NewRmCmd(AppConfig services.AppConfigService, ConfigsListService services.ConfigsListService) RmCmd {
+func NewRmCmd(AppConfig AppConfigService, ConfigsListService ConfigsListService) RmCmd {
 	rmCmd := RmCmd{
 		AppConfigService:   AppConfig,
 		ConfigsListService: ConfigsListService,

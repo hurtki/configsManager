@@ -3,12 +3,11 @@ package sync_cmd
 import (
 	"fmt"
 
-	sync_services "github.com/hurtki/configsManager/services/sync"
 	"github.com/spf13/cobra"
 )
 
 type SyncAuthCmd struct {
-	syncService sync_services.SyncService
+	syncService SyncService
 	Command     *cobra.Command
 	Dropbox     bool
 }
@@ -23,7 +22,7 @@ func (c *SyncAuthCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewSyncAuthCmd(syncService sync_services.SyncService) *SyncAuthCmd {
+func NewSyncAuthCmd(syncService SyncService) *SyncAuthCmd {
 	syncAuthCmd := SyncAuthCmd{
 		syncService: syncService,
 	}

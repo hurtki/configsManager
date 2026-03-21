@@ -1,4 +1,4 @@
-package sync_services
+package domain
 
 type CloudConfigRegistry struct {
 	Configs map[string][32]byte

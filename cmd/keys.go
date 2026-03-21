@@ -2,14 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/hurtki/configsManager/services"
+
 	"github.com/spf13/cobra"
 )
 
 type KeysCmd struct {
 	Command            *cobra.Command
-	AppConfigService   services.AppConfigService
-	ConfigsListService services.ConfigsListService
+	AppConfigService   AppConfigService
+	ConfigsListService ConfigsListService
 }
 
 func (c *KeysCmd) run(cmd *cobra.Command, args []string) error {
@@ -26,8 +26,8 @@ func (c *KeysCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewKeysCmd(AppConfig services.AppConfigService,
-	ConfigsListService services.ConfigsListService,
+func NewKeysCmd(AppConfig AppConfigService,
+	ConfigsListService ConfigsListService,
 ) KeysCmd {
 	keysCmd := KeysCmd{
 		AppConfigService:   AppConfig,
@@ -37,13 +37,13 @@ func NewKeysCmd(AppConfig services.AppConfigService,
 	cmd := &cobra.Command{
 		Use:   "keys",
 		Short: "List all configuration keys",
-		Long: `The 'keys' command outputs all available configuration keys stored 
+		Long: `The 'keys' command outputs all available configuration keys stored
 		in the user's configuration list.
 
 		Usage example:
 		cm keys
 
-		This command is useful to quickly see what configuration entries exist 
+		This command is useful to quickly see what configuration entries exist
 		and can be accessed or managed with other commands.`,
 		RunE: keysCmd.run,
 	}

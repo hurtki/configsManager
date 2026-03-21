@@ -5,16 +5,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hurtki/configsManager/services"
 	"github.com/spf13/cobra"
 )
 
 type AddCmd struct {
 	Command            *cobra.Command
-	AppConfigService   services.AppConfigService
-	InputService       services.InputService
-	ConfigsListService services.ConfigsListService
-	OsService          services.OsService
+	AppConfigService   AppConfigService
+	InputService       InputService
+	ConfigsListService ConfigsListService
+	OsService          OsService
 }
 
 func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
@@ -125,10 +124,10 @@ func (c *AddCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewAddCmd(AppConfigService services.AppConfigService,
-	InputService services.InputService,
-	ConfigsListService services.ConfigsListService,
-	OsService services.OsService,
+func NewAddCmd(AppConfigService AppConfigService,
+	InputService InputService,
+	ConfigsListService ConfigsListService,
+	OsService OsService,
 ) *AddCmd {
 	addCmd := AddCmd{
 		AppConfigService:   AppConfigService,

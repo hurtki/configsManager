@@ -1,4 +1,4 @@
-package sync_services
+package cloud
 
 import (
 	"bytes"

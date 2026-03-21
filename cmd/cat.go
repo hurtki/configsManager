@@ -2,15 +2,15 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/hurtki/configsManager/services"
+
 	"github.com/spf13/cobra"
 )
 
 type CatCmd struct {
 	Command            *cobra.Command
-	AppConfigService   services.AppConfigService
-	ConfigsListService services.ConfigsListService
-	OsService          services.OsService
+	AppConfigService   AppConfigService
+	ConfigsListService ConfigsListService
+	OsService          OsService
 }
 
 // catCmd represents the cat command
@@ -38,9 +38,9 @@ func (c *CatCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewCatCmd(AppConfig services.AppConfigService,
-	ConfigsListService services.ConfigsListService,
-	OsService services.OsService,
+func NewCatCmd(AppConfig AppConfigService,
+	ConfigsListService ConfigsListService,
+	OsService OsService,
 ) *CatCmd {
 	catCmd := CatCmd{
 		AppConfigService:   AppConfig,
@@ -51,13 +51,13 @@ func NewCatCmd(AppConfig services.AppConfigService,
 	cmd := &cobra.Command{
 		Use:   "cat [key]",
 		Short: "Print the content of the config file for a given key",
-		Long: `The 'cat' command fetches and displays the full content of the configuration file 
+		Long: `The 'cat' command fetches and displays the full content of the configuration file
 	associated with the specified key from the user's saved configs list.
 
 	Usage example:
 	cm cat myconfig
 
-	This command is useful when you want to quickly inspect the contents of a configuration 
+	This command is useful when you want to quickly inspect the contents of a configuration
 	file without opening it in an editor.`,
 		RunE: catCmd.run,
 	}

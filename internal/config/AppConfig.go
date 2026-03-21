@@ -1,4 +1,4 @@
-package services
+package config
 
 type AppConfig struct {
 	// Editor command that command "open" uses
@@ -14,18 +14,15 @@ type AppConfig struct {
 // default pointers for default config
 func ptrString(s string) *string { return &s }
 
-// default config
-var defaultConfig = AppConfig{
-	Editor:      ptrString("vim"),
-	IfKeyExists: ptrString("default"),
-}
-
 func NewDefaultAppConfig() *AppConfig {
-	return &defaultConfig
+	return &AppConfig{
+		Editor:      ptrString("vim"),
+		IfKeyExists: ptrString("default"),
+	}
 }
 
 // validate_IfKeyExists() returns True if everythink write and false if somethink is wrong with IfKeyExists field
-func (cfg *AppConfig) validate_IfKeyExists() bool {
+func (cfg *AppConfig) ValidateIfKeyExists() bool {
 	if cfg.IfKeyExists == nil {
 		return true
 	}
@@ -39,8 +36,10 @@ func (cfg *AppConfig) validate_IfKeyExists() bool {
 
 // validateAppConfig() can validate and insert default values
 // if validateAppConfig() changed at least one field it returns true
-func (cfg *AppConfig) validateAppConfig() bool {
+func (cfg *AppConfig) ValidateAppConfig() bool {
 	changed := false
+
+	defaultConfig := NewDefaultAppConfig()
 
 	if cfg.Editor == nil {
 		editor := *defaultConfig.Editor
@@ -48,7 +47,7 @@ func (cfg *AppConfig) validateAppConfig() bool {
 		changed = true
 	}
 
-	if cfg.validate_IfKeyExists() {
+	if cfg.ValidateIfKeyExists() {
 		def := *defaultConfig.IfKeyExists
 		cfg.IfKeyExists = &def
 		changed = true
