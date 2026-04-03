@@ -1,11 +1,11 @@
-//go:build !darwin
+//go:build darwin
 
 package auth
 
 import (
 	"strings"
 
-	"github.com/byteness/keyring"
+	"github.com/99designs/keyring"
 )
 
 var (
