@@ -11,7 +11,7 @@ type SyncService interface {
 	Logout(provider string) error // blank provider param => logout for everyone
 
 	// Pulling
-	PullAll() ([]sync_services.SyncResult, error)
+	PullAll() (sync_services.PullAllResult, error)
 	PullOne(key string) sync_services.SyncResult
 
 	// Pushing
