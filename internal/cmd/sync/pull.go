@@ -8,11 +8,12 @@ import (
 )
 
 type SyncPullCmd struct {
-	syncService SyncService
-	osService   OsService
-	Command     *cobra.Command
-	All         bool
-	SamePlace   bool
+	syncService        SyncService
+	osService          OsService
+	configsListService ConfigsListService
+	Command            *cobra.Command
+	All                bool
+	SamePlace          bool
 }
 
 func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
@@ -25,8 +26,14 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Loading %d configs\n", res.ExpectedConfigsCount)
+		fmt.Printf("found %d configs in cloud\n", res.ExpectedConfigsCount)
 		i := 1
+
+		configsList, err := c.configsListService.Load()
+		if err != nil {
+			return fmt.Errorf("can't get local storage of configs: %w", err)
+		}
+
 		for res := range res.Configs {
 			if res.Error != nil {
 				if res.ConfigObj.KeyName == "" {
@@ -43,10 +50,23 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 				if err := c.osService.WriteFile(cfgPath, res.ConfigObj.Content); err != nil {
 					return fmt.Errorf("%d:can't write confi's data on its determined path: %w", i, err)
 				}
+				if configsList.HasKey(res.ConfigObj.KeyName) {
+					oldPath := configsList.Configs[res.ConfigObj.KeyName]
+					if oldPath != cfgPath {
+						fmt.Printf("%d:key already exists locally, but on other path, overwriting!\n%s->%s\n", i, oldPath, cfgPath)
+					}
+				} else {
+					fmt.Printf("%d:key didn't exist locally, saving it\n", i)
+				}
+				configsList.SetConfig(res.ConfigObj.KeyName, cfgPath)
 				fmt.Printf("%d:pulled %s to: %s\n", i, res.ConfigObj.KeyName, cfgPath)
 			}
-
 			i++
+		}
+
+		err = c.configsListService.Save(configsList)
+		if err != nil {
+			return fmt.Errorf("can't save local configs list: %w", err)
 		}
 	case 1:
 		if c.All {
@@ -94,8 +114,8 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewSyncPullCmd(syncService SyncService, osService OsService) *SyncPullCmd {
-	syncPullCmd := &SyncPullCmd{syncService: syncService, osService: osService}
+func NewSyncPullCmd(syncService SyncService, osService OsService, configsListService ConfigsListService) *SyncPullCmd {
+	syncPullCmd := &SyncPullCmd{syncService: syncService, osService: osService, configsListService: configsListService}
 
 	cmd := &cobra.Command{
 		Use:   "pull",
