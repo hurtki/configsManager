@@ -13,4 +13,5 @@ var (
 	ErrNothingToPush            = errors.New("all configs are synced, nothing to push")
 	ErrUnauthorizedRequest      = errors.New("not valid access token in request to dropbox api using sdk")
 	ErrRetrieveTokenFromStorage = errors.New("retrieving tokens from storage went wrong (you likely typed passphrase wrong!)")
+	ErrPassphraseMismatch       = errors.New("passphrases do not match")
 )

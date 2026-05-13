@@ -19,7 +19,7 @@ func main() {
 	configsListService := services.NewConfigsListService()
 	osService := services.NewOsService()
 
-	tokenStore := auth.NewTokenStoreImpl()
+	tokenStore := auth.NewTokenStoreImpl(osService)
 	authManager := auth.NewAuthManager(tokenStore)
 
 	var cloudManager sync_services.CloudManager
