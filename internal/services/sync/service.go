@@ -13,6 +13,7 @@ type AuthManager interface {
 	GetToken(providerName string) (string, error)
 	RemoveToken(providerName string) error
 	RemoveAllTokens() error
+	Unlock() (string, error)
 	// WIP
 	// RefreshToken(providerName string) error
 }
@@ -60,6 +61,10 @@ func (s *SyncService) Logout(provider string) error {
 		return s.AuthManager.RemoveAllTokens()
 	}
 	return s.AuthManager.RemoveToken(provider)
+}
+
+func (s *SyncService) Unlock() (string, error) {
+	return s.AuthManager.Unlock()
 }
 
 func (s *SyncService) PullOne(key string) SyncResult {

@@ -1,18 +1,24 @@
 package auth
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 )
 
-const tokensFileName = "tokens.dat"
+const (
+	tokensFileName = "tokens.dat"
+	sessionKeyEnv  = "CM_SYNC_KEY"
+)
 
 type TokenStore interface {
 	SaveToken(providerName string, tokenPair TokenPair) error
 	LoadToken(providerName string) (*TokenPair, error)
 	DeleteToken(providerName string) error
+	DeriveSessionKey() ([]byte, error)
 }
 
 type TokenPair struct {
@@ -27,9 +33,11 @@ type OsService interface {
 type promptFunc func(prompt string, confirm bool) (string, error)
 
 type TokenStoreImpl struct {
-	osService  OsService
-	promptFn   promptFunc
-	cachedPass []byte
+	osService   OsService
+	promptFn    promptFunc
+	cachedKey   []byte
+	cachedSalt  []byte
+	envKeyTried bool
 }
 
 type tokensPlaintext struct {
@@ -51,16 +59,42 @@ func (s *TokenStoreImpl) tokensPath() (string, error) {
 	return filepath.Join(home, ".config", "configsManager", tokensFileName), nil
 }
 
-func (s *TokenStoreImpl) getPassphrase(prompt string, confirm bool) ([]byte, error) {
-	if s.cachedPass != nil {
-		return s.cachedPass, nil
+func (s *TokenStoreImpl) tryEnvKey(blob []byte) ([]byte, []byte, bool) {
+	if s.envKeyTried {
+		return nil, nil, false
 	}
-	pass, err := s.promptFn(prompt, confirm)
+	s.envKeyTried = true
+
+	raw := os.Getenv(sessionKeyEnv)
+	if raw == "" {
+		return nil, nil, false
+	}
+	key, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil || len(key) != keyLen {
+		fmt.Fprintf(os.Stderr, "warning: %s is set but malformed; ignoring\n", sessionKeyEnv)
+		return nil, nil, false
+	}
+	pt, salt, err := openBlobWithKey(blob, key)
 	if err != nil {
-		return nil, err
+		fmt.Fprintf(os.Stderr, "warning: %s did not match this token file; falling back to passphrase. Re-run `eval \"$(cm sync unlock)\"` after entering it.\n", sessionKeyEnv)
+		return nil, nil, false
 	}
-	s.cachedPass = []byte(pass)
-	return s.cachedPass, nil
+	s.cachedKey = key
+	s.cachedSalt = salt
+	return pt, key, true
+}
+
+func (s *TokenStoreImpl) decryptWithCachedKey(blob []byte) ([]byte, bool) {
+	if s.cachedKey == nil {
+		return nil, false
+	}
+	pt, _, err := openBlobWithKey(blob, s.cachedKey)
+	if err != nil {
+		s.cachedKey = nil
+		s.cachedSalt = nil
+		return nil, false
+	}
+	return pt, true
 }
 
 func (s *TokenStoreImpl) loadPlaintext() (*tokensPlaintext, error) {
@@ -76,18 +110,27 @@ func (s *TokenStoreImpl) loadPlaintext() (*tokensPlaintext, error) {
 		return nil, err
 	}
 
-	pass, err := s.getPassphrase("Enter passphrase: ", false)
-	if err != nil {
-		return nil, err
+	if pt, _, ok := s.tryEnvKey(blob); ok {
+		return parsePlaintext(pt)
 	}
-	pt, err := openBlob(blob, pass)
-	if err != nil {
-		if errors.Is(err, ErrRetrieveTokenFromStorage) {
-			s.cachedPass = nil
-		}
-		return nil, err
+	if pt, ok := s.decryptWithCachedKey(blob); ok {
+		return parsePlaintext(pt)
 	}
 
+	pass, err := s.promptFn("Enter passphrase: ", false)
+	if err != nil {
+		return nil, err
+	}
+	pt, salt, key, err := openBlob(blob, []byte(pass))
+	if err != nil {
+		return nil, err
+	}
+	s.cachedKey = key
+	s.cachedSalt = salt
+	return parsePlaintext(pt)
+}
+
+func parsePlaintext(pt []byte) (*tokensPlaintext, error) {
 	var doc tokensPlaintext
 	if err := json.Unmarshal(pt, &doc); err != nil {
 		return nil, err
@@ -104,22 +147,32 @@ func (s *TokenStoreImpl) savePlaintext(doc *tokensPlaintext) error {
 		return err
 	}
 
-	confirm := false
-	if _, statErr := os.Stat(path); errors.Is(statErr, os.ErrNotExist) && s.cachedPass == nil {
-		confirm = true
-	}
-	pass, err := s.getPassphrase("Create passphrase: ", confirm)
-	if err != nil {
-		return err
-	}
-
 	pt, err := json.Marshal(doc)
 	if err != nil {
 		return err
 	}
-	blob, err := seal(pt, pass)
-	if err != nil {
-		return err
+
+	var blob []byte
+	switch {
+	case s.cachedKey != nil && s.cachedSalt != nil:
+		blob, err = sealWithKey(pt, s.cachedKey, s.cachedSalt)
+		if err != nil {
+			return err
+		}
+	default:
+		// No cache → file should not exist (Load was called before any Save in
+		// real flows). Treat as first-time creation: prompt with confirm.
+		pass, err := s.promptFn("Create passphrase: ", true)
+		if err != nil {
+			return err
+		}
+		newBlob, key, salt, err := seal(pt, []byte(pass))
+		if err != nil {
+			return err
+		}
+		blob = newBlob
+		s.cachedKey = key
+		s.cachedSalt = salt
 	}
 
 	dir := filepath.Dir(path)
@@ -186,10 +239,14 @@ func (s *TokenStoreImpl) DeleteToken(providerName string) error {
 		}
 		delete(doc.Providers, providerName)
 		if len(doc.Providers) == 0 {
+			s.cachedKey = nil
+			s.cachedSalt = nil
 			return os.Remove(path)
 		}
 		return s.savePlaintext(doc)
 	case "":
+		s.cachedKey = nil
+		s.cachedSalt = nil
 		if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
@@ -197,4 +254,30 @@ func (s *TokenStoreImpl) DeleteToken(providerName string) error {
 	default:
 		return ErrAuthProviderDoesntExist
 	}
+}
+
+func (s *TokenStoreImpl) DeriveSessionKey() ([]byte, error) {
+	path, err := s.tokensPath()
+	if err != nil {
+		return nil, err
+	}
+	blob, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, ErrTokenNotFoundInSecrets
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	pass, err := s.promptFn("Enter passphrase: ", false)
+	if err != nil {
+		return nil, err
+	}
+	_, salt, key, err := openBlob(blob, []byte(pass))
+	if err != nil {
+		return nil, err
+	}
+	s.cachedKey = key
+	s.cachedSalt = salt
+	return key, nil
 }
