@@ -25,7 +25,9 @@ func NewSyncCmd(AppConfigService AppConfigService,
 	cmd.AddCommand(sync_cmd.NewSyncAuthCmd(SyncService).Command)
 	cmd.AddCommand(sync_cmd.NewSyncLogoutCmd(SyncService).Command)
 	cmd.AddCommand(sync_cmd.NewSyncPushCmd(SyncService, ConfigsListService, OsService).Command)
-	cmd.AddCommand(sync_cmd.NewSyncPullCmd(SyncService, OsService).Command)
+	cmd.AddCommand(sync_cmd.NewSyncPullCmd(SyncService, OsService, ConfigsListService).Command)
+	cmd.AddCommand(sync_cmd.NewSyncUnlockCmd(SyncService).Command)
+	cmd.AddCommand(sync_cmd.NewSyncLockCmd().Command)
 	syncCmd.Command = cmd
 
 	return &syncCmd

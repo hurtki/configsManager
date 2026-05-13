@@ -9,9 +9,10 @@ type SyncService interface {
 	// Authorization
 	Auth(provider string) error
 	Logout(provider string) error // blank provider param => logout for everyone
+	Unlock() (string, error)      // derives session key, returns base64 of 32 bytes
 
 	// Pulling
-	PullAll() ([]sync_services.SyncResult, error)
+	PullAll() (sync_services.PullAllResult, error)
 	PullOne(key string) sync_services.SyncResult
 
 	// Pushing

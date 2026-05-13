@@ -8,16 +8,17 @@ import (
 )
 
 type SyncPullCmd struct {
-	syncService SyncService
-	osService   OsService
-	Command     *cobra.Command
-	All         bool
-	SamePlace   bool
+	syncService        SyncService
+	osService          OsService
+	configsListService ConfigsListService
+	Command            *cobra.Command
+	All                bool
+	SamePlace          bool
 }
 
 func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
-
-	if len(args) == 0 {
+	switch len(args) {
+	case 0:
 		if !c.All || !c.SamePlace {
 			return ErrPullBothFlagsRequired
 		}
@@ -25,30 +26,49 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+		fmt.Printf("found %d configs in cloud\n", res.ExpectedConfigsCount)
+		i := 1
 
-		for i, res := range res {
+		configsList, err := c.configsListService.Load()
+		if err != nil {
+			return fmt.Errorf("can't get local storage of configs: %w", err)
+		}
 
+		for res := range res.Configs {
 			if res.Error != nil {
 				if res.ConfigObj.KeyName == "" {
-					fmt.Printf("error for index: %s, error: %d\n", fmt.Sprint(i), res.Error)
+					fmt.Printf("%d:error: %s\n", i, res.Error.Error())
 				} else {
-					fmt.Printf("for '%s', error: %d\n", res.ConfigObj.KeyName, res.Error)
+					fmt.Printf("%d:for '%s', error: %s\n", i, res.ConfigObj.KeyName, res.Error.Error())
 				}
-
 			} else {
 				homeDir, _ := c.osService.GetHomeDir()
 				cfgPath := res.ConfigObj.DeterminedPath.BuildPath(homeDir)
 				if err := c.osService.MakePathAndFile(cfgPath); err != nil {
-					return err
+					return fmt.Errorf("%d:can't make path on config's determined path: %s, %w", i, cfgPath, err)
 				}
 				if err := c.osService.WriteFile(cfgPath, res.ConfigObj.Content); err != nil {
-					return err
+					return fmt.Errorf("%d:can't write confi's data on its determined path: %w", i, err)
 				}
-				fmt.Printf("pulled config to: %s\n", cfgPath)
+				if configsList.HasKey(res.ConfigObj.KeyName) {
+					oldPath := configsList.Configs[res.ConfigObj.KeyName]
+					if oldPath != cfgPath {
+						fmt.Printf("%d:key already exists locally, but on other path, overwriting!\n%s->%s\n", i, oldPath, cfgPath)
+					}
+				} else {
+					fmt.Printf("%d:key didn't exist locally, saving it\n", i)
+				}
+				configsList.SetConfig(res.ConfigObj.KeyName, cfgPath)
+				fmt.Printf("%d:pulled %s to: %s\n", i, res.ConfigObj.KeyName, cfgPath)
 			}
+			i++
 		}
 
-	} else if len(args) == 1 {
+		err = c.configsListService.Save(configsList)
+		if err != nil {
+			return fmt.Errorf("can't save local configs list: %w", err)
+		}
+	case 1:
 		if c.All {
 			return ErrPullAllFlagNotSupported
 		}
@@ -72,8 +92,7 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 			}
 			fmt.Printf("pulled config: %s to executing folder\n", res.ConfigObj.FileName)
 		}
-
-	} else if len(args) == 2 {
+	case 2:
 		if c.SamePlace || c.All {
 			return ErrPullAllAndSpFlagsNotSupported
 		}
@@ -89,14 +108,14 @@ func (c *SyncPullCmd) run(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		fmt.Printf("pulled config to: %s\n", path)
-	} else {
+	default:
 		return ErrPullMoreThanTwoArgumentsProvided
 	}
 	return nil
 }
 
-func NewSyncPullCmd(syncService SyncService, osService OsService) *SyncPullCmd {
-	syncPullCmd := &SyncPullCmd{syncService: syncService, osService: osService}
+func NewSyncPullCmd(syncService SyncService, osService OsService, configsListService ConfigsListService) *SyncPullCmd {
+	syncPullCmd := &SyncPullCmd{syncService: syncService, osService: osService, configsListService: configsListService}
 
 	cmd := &cobra.Command{
 		Use:   "pull",

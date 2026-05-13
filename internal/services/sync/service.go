@@ -2,6 +2,7 @@ package sync_services
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"sync"
 
 	"github.com/hurtki/configsManager/internal/domain"
@@ -12,6 +13,7 @@ type AuthManager interface {
 	GetToken(providerName string) (string, error)
 	RemoveToken(providerName string) error
 	RemoveAllTokens() error
+	Unlock() (string, error)
 	// WIP
 	// RefreshToken(providerName string) error
 }
@@ -38,6 +40,11 @@ type SyncResult struct {
 	Error     error
 }
 
+type PullAllResult struct {
+	Configs              <-chan SyncResult
+	ExpectedConfigsCount int
+}
+
 func NewSyncService(authManager AuthManager, cloudManager CloudManager) *SyncService {
 	return &SyncService{
 		CloudManager: cloudManager,
@@ -56,32 +63,37 @@ func (s *SyncService) Logout(provider string) error {
 	return s.AuthManager.RemoveToken(provider)
 }
 
+func (s *SyncService) Unlock() (string, error) {
+	return s.AuthManager.Unlock()
+}
+
 func (s *SyncService) PullOne(key string) SyncResult {
 	configRegistry, err := s.CloudManager.GetCloudInfo()
 	if err != nil {
 		return SyncResult{
-			ConfigObj: nil,
-			Error:     err,
+			Error: err,
 		}
 	}
 	if !configRegistry.KeyExist(key) {
 		return SyncResult{
-			ConfigObj: nil,
-			Error:     ErrKeyNotFoundInCloud,
+			Error: ErrKeyNotFoundInCloud,
 		}
 	}
 
 	cfgObj, err := s.CloudManager.DownloadConfig(key)
-	return SyncResult{ConfigObj: cfgObj, Error: err}
+	if err != nil {
+		return SyncResult{ConfigObj: cfgObj, Error: fmt.Errorf("can't download config from cloud: %w", err)}
+	} else {
+		return SyncResult{ConfigObj: cfgObj}
+	}
 }
 
-func (s *SyncService) PullAll() ([]SyncResult, error) {
+func (s *SyncService) PullAll() (PullAllResult, error) {
 	configRegistry, err := s.CloudManager.GetCloudInfo()
 	if err != nil {
-		return nil, err
+		return PullAllResult{}, err
 	}
 	keys := configRegistry.GetAllKeys()
-	results := []SyncResult{}
 	resChan := make(chan SyncResult)
 	wg := &sync.WaitGroup{}
 	wg.Add(len(keys))
@@ -96,10 +108,11 @@ func (s *SyncService) PullAll() ([]SyncResult, error) {
 		wg.Wait()
 		close(resChan)
 	}()
-	for res := range resChan {
-		results = append(results, res)
-	}
-	return results, nil
+
+	return PullAllResult{
+		Configs:              resChan,
+		ExpectedConfigsCount: len(keys),
+	}, nil
 }
 func (s *SyncService) Push(configs []*domain.ConfigObj, force bool) ([]*SyncResult, error) {
 	cloudConfigRegistry, err := s.CloudManager.GetCloudInfo()

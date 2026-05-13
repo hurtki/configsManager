@@ -137,6 +137,14 @@ func (m *AuthManager) RemoveAllTokens() error {
 	return m.TokenStore.DeleteToken("dropbox")
 }
 
+func (m *AuthManager) Unlock() (string, error) {
+	key, err := m.TokenStore.DeriveSessionKey()
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(key), nil
+}
+
 // =================== WIP ====================
 // ============================================
 func (m *AuthManager) RefreshToken(providerName string) error {

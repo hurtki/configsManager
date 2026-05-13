@@ -19,19 +19,26 @@ The **ConfigsManager Sync** feature allows you to quickly save and restore all y
 
 ---
 
+### How tokens are stored
+
+ConfigsManager keeps your cloud OAuth tokens in a single encrypted file at
+`~/.config/configsManager/tokens.dat` (permissions `0600`).
+
+* Encryption: **AES-256-GCM** (authenticated).
+* Key derivation: **Argon2id** with parameters `time=4`, `memory=128 MiB`,
+  `threads=4`. The KDF parameters and salt are written inside the file, so
+  they can be bumped in future releases without breaking existing installs.
+* No system keyring is used — no KWallet, no Secret Service, no Keychain,
+  no `pass`, no external daemons.
+
+You set a passphrase the first time you run `cm sync auth`. Every later
+command that needs the tokens will ask for that passphrase (or use a
+session key — see [Unlock a terminal session](#unlock-a-terminal-session)
+below).
+
+---
+
 ### Fast Start
-
-**1.Set up a keying vault:**
-Tool tries to check keyring backends in this oreder:
-* KWallet ( linux systems )
-* SecretService ( linux systems )
-* KeyChain ( apple mac systems )
-* Pass ( UNIX systems )
-* File Backend ( supports all systems )
-
-**[SETUP OF PASS TOOL](https://www.passwordstore.org/)**
-
-> If you are getting errors like `file doesn't exist` when tool tries to access `pass` try initializing `pass init [gpg-id/email]` couple of times
 
 Log into Dropbox:
 
@@ -39,7 +46,12 @@ Log into Dropbox:
 cm sync auth --dropbox
 ```
 
-> You will receive a link from the tool. Follow the OAuth2 workflow by opening the link and entering the code provided.
+The first time you run this you will be asked to **create a passphrase**
+(entered twice). This passphrase protects the encrypted token file —
+remember it; there is no recovery.
+
+> You will then receive a link from the tool. Follow the OAuth2 workflow
+> by opening the link and entering the code provided.
 
 ---
 
@@ -89,6 +101,47 @@ cm sync pull --all --sp
 ```
 
 > Automatically restores **all synced configs** to the proper folders.
+
+---
+
+### Unlock a terminal session
+
+Argon2id is slow on purpose — it adds about a second to every command that
+touches the token file, and you have to retype the passphrase each time.
+For a series of commands in one terminal there is a shortcut:
+
+```sh
+eval "$(cm sync unlock)"
+```
+
+* `cm sync unlock` asks for the passphrase **once**, derives the AES key,
+  and prints `export CM_SYNC_KEY=<base64>` to stdout. The `eval` puts that
+  variable into your current shell.
+* Every later `cm sync …` command in the same shell reads `CM_SYNC_KEY`,
+  skips the passphrase prompt **and** the slow Argon2id step, and decrypts
+  the file directly.
+* `CM_SYNC_KEY` lives only in this shell. Closing the terminal forgets it.
+
+To clear it without closing the terminal:
+
+```sh
+eval "$(cm sync lock)"
+```
+
+That just runs `unset CM_SYNC_KEY` — the next `cm sync …` will ask for
+the passphrase again.
+
+#### Security notes
+
+* `CM_SYNC_KEY` grants the same access to your tokens as the passphrase
+  would. Treat it like a password: do not log it, do not pass it to other
+  processes, do not copy it between machines.
+* Anything that can read your process environment (same UID, `ps eww`,
+  `/proc/<pid>/environ` on Linux) can read the key while it is set.
+* If the variable becomes stale (for example you changed the passphrase
+  on another machine and pulled a new `tokens.dat`), the tool will print a
+  warning and fall back to a passphrase prompt — just run
+  `eval "$(cm sync unlock)"` again to refresh.
 
 ---
 
